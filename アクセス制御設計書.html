@@ -1,0 +1,479 @@
+<title>アクセス制御設計と実装</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root{
+    --paper:#f4f7f7; --card:#ffffff; --card-2:#eef3f3;
+    --ink:#101418; --ink-2:#4a555c; --ink-3:#77848c;
+    --line:#dde5e5; --line-2:#c3cfcf;
+    --brand:#07467E; --brand-soft:#e6eef6; --brand-deep:#052f56;
+    --ok:#1c6b45; --ok-soft:#e6f2ec;
+    --warn:#8a5a00; --warn-soft:#f7eeda;
+    --deny:#a8232c; --deny-soft:#f8e8e8;
+    --sans:"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#0f1416; --card:#171d20; --card-2:#1e2529;
+      --ink:#eef3f4; --ink-2:#b3c0c6; --ink-3:#859399; --line:#2a3438; --line-2:#3a464b;
+      --brand:#7fb2e0; --brand-soft:#12222f; --brand-deep:#a9cdec;
+      --ok:#6fc79b; --ok-soft:#132420;
+      --warn:#dcae5c; --warn-soft:#26200f;
+      --deny:#e79098; --deny-soft:#2a1618;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0f1416; --card:#171d20; --card-2:#1e2529;
+    --ink:#eef3f4; --ink-2:#b3c0c6; --ink-3:#859399;
+    --line:#2a3438; --line-2:#3a464b;
+    --brand:#7fb2e0; --brand-soft:#12222f; --brand-deep:#a9cdec;
+    --ok:#6fc79b; --ok-soft:#132420;
+    --warn:#dcae5c; --warn-soft:#26200f;
+    --deny:#e79098; --deny-soft:#2a1618;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--sans);font-size:16px;line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:980px;margin:0 auto;padding:48px 28px 72px;}
+
+  /* ── 見出し ───────────────────────────── */
+  header.doc{border-bottom:3px solid var(--brand);padding-bottom:20px;margin-bottom:28px;}
+  .eyebrow{
+    margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.16em;color:var(--brand);
+  }
+  h1{margin:0;font-size:33px;font-weight:900;line-height:1.3;letter-spacing:.01em;}
+  .doc-meta{margin:10px 0 0;font-size:13px;color:var(--ink-3);}
+  .lede{margin:18px 0 0;font-size:15.5px;color:var(--ink-2);line-height:1.9;max-width:62ch;}
+
+  /* ── 要約 ─────────────────────────────── */
+  .summary{
+    margin:26px 0 40px;background:var(--card);border:1px solid var(--line);
+    border-left:5px solid var(--brand);border-radius:4px;padding:20px 24px;
+  }
+  .summary h2{margin:0 0 12px;font-size:14px;font-weight:900;letter-spacing:.08em;color:var(--brand);}
+  .summary dl{margin:0;display:grid;grid-template-columns:104px 1fr;gap:9px 16px;}
+  .summary dt{
+    font-size:12px;font-weight:700;color:var(--ink-3);text-align:right;
+    border-right:1px solid var(--line);padding-right:14px;line-height:1.9;
+  }
+  .summary dd{margin:0;font-size:14.5px;line-height:1.85;}
+
+  /* ── 節 ───────────────────────────────── */
+  section{margin:0 0 44px;}
+  h2.sec{
+    display:flex;align-items:baseline;gap:14px;margin:0 0 6px;
+    font-size:22px;font-weight:900;line-height:1.4;
+  }
+  h2.sec .no{
+    flex:none;display:grid;place-items:center;width:30px;height:30px;
+    background:var(--brand);color:#fff;border-radius:3px;
+    font-size:15px;font-weight:900;font-family:var(--mono);
+  }
+  h2.sec small{font-size:12.5px;font-weight:500;color:var(--ink-3);letter-spacing:.02em;}
+  h3{margin:26px 0 8px;font-size:16.5px;font-weight:900;color:var(--brand-deep);}
+  p{margin:10px 0;}
+  section>p:first-of-type{margin-top:14px;}
+  ul,ol{margin:10px 0;padding-left:1.4em;}
+  li{margin:5px 0;}
+  code{
+    font-family:var(--mono);font-size:.86em;background:var(--card-2);
+    border:1px solid var(--line);border-radius:3px;padding:1px 5px;white-space:nowrap;
+  }
+  b{font-weight:700;}
+  .em{color:var(--brand);font-weight:700;}
+
+  /* ── 表 ───────────────────────────────── */
+  .scroll{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:4px;background:var(--card);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:600px;}
+  th,td{padding:11px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);line-height:1.7;}
+  thead th{
+    background:var(--card-2);font-size:12px;font-weight:900;letter-spacing:.04em;
+    color:var(--ink-2);white-space:nowrap;border-bottom:2px solid var(--line-2);
+  }
+  tbody tr:last-child td{border-bottom:0;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .pill{
+    display:inline-block;font-size:11.5px;font-weight:700;padding:1px 9px;border-radius:999px;
+    white-space:nowrap;
+  }
+  .pill.ok{background:var(--ok-soft);color:var(--ok);}
+  .pill.warn{background:var(--warn-soft);color:var(--warn);}
+  .pill.deny{background:var(--deny-soft);color:var(--deny);}
+  .pill.brand{background:var(--brand-soft);color:var(--brand);}
+
+  /* ── 注記・囲み ───────────────────────── */
+  .note{
+    margin:16px 0;padding:14px 18px;border-radius:4px;background:var(--card);
+    border:1px solid var(--line);border-left:4px solid var(--ink-3);
+    font-size:14px;line-height:1.8;color:var(--ink-2);
+  }
+  .note.updated{border-left-color:var(--ok);}
+  .note.caution{border-left-color:var(--warn);}
+  .note b{color:var(--ink);}
+  .formula{
+    margin:16px 0;padding:18px 20px;background:var(--card);border:1px solid var(--line);
+    border-radius:4px;font-family:var(--mono);font-size:13.5px;line-height:2;white-space:pre-wrap;
+  }
+  .formula .plus{color:var(--brand);font-weight:600;}
+  .measured{
+    margin-top:6px;font-size:12.5px;color:var(--ink-3);
+  }
+  .measured::before{content:"実測 ";font-weight:700;color:var(--brand);}
+
+  footer.doc{
+    margin-top:56px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:12.5px;color:var(--ink-3);line-height:1.9;
+  }
+  @media(max-width:640px){
+    .page{padding:32px 16px 56px;}
+    h1{font-size:26px;}
+    .summary dl{grid-template-columns:1fr;}
+    .summary dt{text-align:left;border-right:0;border-left:3px solid var(--line);padding:0 0 0 10px;}
+  }
+</style>
+
+<div class="page" lang="ja-JP">
+
+  <header class="doc">
+    <p class="eyebrow">HHグループ AI経営診断アプリ</p>
+    <h1>アクセス制御 設計と実装</h1>
+    <p class="doc-meta">2026-08-25 更新（設計 2026-08-21 ／ 実装反映 2026-08-25）｜対象：gradio_app_0825</p>
+    <p class="lede">
+      アカウント単位で「何を見てよいか」をどう決め、どこで強制しているかをまとめた文書です。
+      §1〜3は方式を選んだときの判断材料、§4〜8は実際に動いている実装、§9は現時点で
+      できていないことです。
+    </p>
+  </header>
+
+  <div class="summary">
+    <h2>要約</h2>
+    <dl>
+      <dt>方式</dt>
+      <dd>認証（誰か）と認可（何を見てよいか）を分離。認可はSQLiteの権限台帳1か所に集約し、
+        強制はアプリ層（検索SQLのWHERE句・プロンプトへ渡す前のフィルタ・画面生成の分岐）で行う。</dd>
+      <dt>既定</dt>
+      <dd>deny-by-default。台帳に無いユーザー・無効化されたユーザーは<b>公開IRのみ</b>。</dd>
+      <dt>粒度</dt>
+      <dd>データ群（<code>data_internal/</code> のフォルダ）単位＋事業体KPI単位。</dd>
+      <dt>稼働状況</dt>
+      <dd>台帳に5アカウント。付与対象のデータ群は12（内部資料5＋事業KPI6＋その他内部）＋常時公開の「公開IR」。</dd>
+    </dl>
+  </div>
+
+  <!-- ══════════ 1 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">1</span>設計時の事実確認<small>2026-08-21 時点</small></h2>
+    <p>方式を決めるにあたって、当時のアプリの状態を確認した結果です。</p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:16%">項目</th><th style="width:44%">当時の状態</th><th>アクセス制御の観点での評価</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>ベクタDB</td>
+            <td>ChromaDBは不使用。RAGは自作のSQLite（<code>rag_documents</code>＋FTS5＋埋め込みBLOB、6,672断片／392MB）</td>
+            <td>全アクセスが単一Pythonプロセスの <code>retrieve()</code> を通る＝<b>強制ポイントを作りやすい</b></td>
+          </tr>
+          <tr>
+            <td>データ群のタグ</td>
+            <td>全断片が <code>category</code> を保持（<code>data_internal/</code> のフォルダ名＝分類）</td>
+            <td>「データ群」の粒度は<b>既に存在する</b>。WHERE句を足すだけで絞り込める</td>
+          </tr>
+          <tr>
+            <td>株主総会DB</td>
+            <td><code>agm_workflow.db</code> に <code>scope</code>／<code>owner_unit</code>／<code>bu_name</code>／<code>disclosure</code> 列があるが、アクセス制御には未使用</td>
+            <td>行レベル制御に必要な列とBU→部門対応表は実装済みで、WHERE句に使われていないだけ</td>
+          </tr>
+          <tr>
+            <td>認証</td>
+            <td>Gradio Basic認証（<code>APP_CREDENTIALS</code>）。ユーザー名は全ハンドラで <code>gr.Request.username</code> から取得可能</td>
+            <td>認証（誰か）は最低限ある。<b>認可（何を見てよいか）の台帳が無い</b></td>
+          </tr>
+          <tr>
+            <td>権限の置き場</td>
+            <td>株主総会Q&amp;Aのロールのみ環境変数のJSON。変更に再起動が必要・履歴なし・当時の設定では全員admin</td>
+            <td>「アカウントから簡単に制御」の要件と正反対。<b>台帳のDB化が必須</b></td>
+          </tr>
+          <tr>
+            <td>その他の共有データ</td>
+            <td>AI回答履歴（全員に見える）、監視設定・取得条件（全員共有）、アップロード資料</td>
+            <td>履歴は部署間で見せたくない情報を含み得る。制御対象に含めるべき</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note updated">
+      <b>その後の実装で解消した項目：</b>権限台帳の新設（§4）、株主総会Q&amp;Aのロールを台帳から写像（§7）、
+      センシングボードの事業体別権限（§5）、AI回答履歴の本人限定表示。
+      <b>未着手：</b>株主総会Q&amp;Aの行レベル制御と、監視設定の書き込み権限（§9）。
+    </div>
+  </section>
+
+  <!-- ══════════ 2 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">2</span>SQLiteでどこまでできるか</h2>
+    <p>
+      <span class="em">判定：この構成なら要件をすべて満たせる。</span>
+      SQLiteに行レベルセキュリティ（RLS）が無いことが弱点になるのは「複数の主体が直接DBへ接続する」構成の場合で、
+      本アプリは<b>全アクセスが単一のアプリプロセスを経由する</b>ためです。強制はアプリ層のWHERE句で行い、
+      DBはその述語を高速に処理できればよい、という整理になります。
+    </p>
+    <ul>
+      <li><b>RAG検索の絞り込み</b>：<code>retrieve()</code> のSQLに「許可データ群 IN (…)」を足すだけ。検索速度への影響は無視できる</li>
+      <li><b>株主総会の行レベル制御</b>：既存の <code>scope</code>／<code>owner_unit</code>／<code>disclosure</code> 列をデータ取得層のWHERE句へ接続すればよく、HTML生成側は触らずに済む</li>
+      <li><b>権限台帳</b>：新設のSQLite <code>runtime_data/access_control.db</code>。数十〜数百ユーザー規模でSQLiteの限界には遠く及ばない</li>
+    </ul>
+    <div class="note caution">
+      <b>限界（明示）：</b>(a) ファイルシステムに触れる人はDBを直接読める — OSレベルの権限とサーバのアクセス管理で守る前提は現行と同じ。
+      (b) 複数プロセス（gunicorn等）やBIツールがDBへ直接接続する将来構成では、アプリ層の強制をすり抜けるため
+      PostgreSQL＋RLSへの移行が必要（§9）。
+    </div>
+    <div class="note">
+      <b>設計時からの変更：</b>当初は <code>category</code> を実列へ昇格させて索引を張る想定でしたが、
+      実装では <code>metadata_json</code> の <code>json_extract</code> のままでも検索速度に影響が出なかったため、
+      列の昇格は行っていません（§5の判定SQLを参照）。
+    </div>
+  </section>
+
+  <!-- ══════════ 3 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">3</span>DB選択肢の比較</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:19%">選択肢</th><th style="width:29%">実現方式</th><th>得るもの／失うもの</th><th style="width:13%">判定</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>A. SQLite継続</b><br>（現行＋権限台帳）</td>
+            <td>アプリ層ACL（強制ポイントのWHERE句）＋deny-by-default</td>
+            <td><b>得る：</b>移行ゼロ。ハイブリッド検索（FTS5＋埋め込み）と差分索引を無傷で維持。実装が最小<br>
+              <b>失う：</b>DBレベルの強制なし（単一プロセス前提）。プロセス保護に依存</td>
+            <td><span class="pill ok">採用</span></td>
+          </tr>
+          <tr>
+            <td><b>B. ChromaDB移行</b></td>
+            <td>コレクション分割＋メタデータフィルタ。OSS版に認証・ユーザー権限機能は無く、結局アプリ層で絞る点はAと同じ</td>
+            <td><b>得る：</b>ベクタ検索の専用API<br>
+              <b>失う：</b>FTS5ハイブリッド検索・相対カットオフ・差分索引・調整済みパイプラインを作り直し。<b>認可の観点での前進はゼロ</b></td>
+            <td><span class="pill deny">非採用</span></td>
+          </tr>
+          <tr>
+            <td><b>C. PostgreSQL<br>＋pgvector</b></td>
+            <td>ネイティブの行レベルセキュリティ（RLS）＋DBロール。ユーザーごとのセッション変数でDB側が行を強制</td>
+            <td><b>得る：</b>多プロセス・直接接続・監査までDB層で担保。同時書き込み問題も根治<br>
+              <b>失う：</b>サーバ運用（構築・バックアップ・監視）とストレージ層の書き直し。PoC規模では過剰</td>
+            <td><span class="pill warn">将来の移行先</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════ 4 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">4</span>権限台帳<small>access_control.py ／ SQLite</small></h2>
+    <p>
+      認可の情報は <code>runtime_data/access_control.db</code> の3テーブルだけに置きます。
+      キーは<b>認証済みユーザー名の文字列</b>のみで、認証方式には一切依存しません。
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:20%">テーブル</th><th>持つもの</th></tr></thead>
+        <tbody>
+          <tr><td><code>users</code></td><td>ユーザー名（主キー）・表示名・所属・ロール・<b>有効フラグ</b>・パスワードハッシュ・作成/更新時刻</td></tr>
+          <tr><td><code>user_grants</code></td><td>ユーザー×データ群の個別付与（複合主キー）</td></tr>
+          <tr><td><code>audit_log</code></td><td>誰が・いつ・誰の権限を・どう変えたか。<b>権限変更そのものを記録</b>（パスワード値は残さない）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      ロールは5種（担当・コア・経営層・事務局・システム管理者）×所属部署7種。
+      管理は画面から行い（管理者設定 → ユーザー・権限管理）、<b>再起動なしで反映</b>されます。
+    </p>
+  </section>
+
+  <!-- ══════════ 5 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">5</span>データ群の決まり方</h2>
+    <p>付与対象のデータ群は、資料フォルダの構成から<b>毎回導出</b>します。コードに一覧を持ちません。</p>
+    <div class="formula"><span class="plus">data_internal/ のフォルダ</span>
+  中期経営計画・株主総会Q&amp;A・株主総会議事録・社内資料・経営会議議事録・IR公表資料
+        ↓ IR公表資料は公開扱いのため付与対象から除外
+<span class="plus">＋ 事業KPI群</span>　事業KPI:都市交通／不動産／エンタテインメント／情報・通信／旅行／国際輸送
+<span class="plus">＋ その他内部</span>　分類の無い内部資料の受け皿（未知の分類を無条件公開にしない）
+= 付与対象 12群　＋　公開IR（常時全員）</div>
+    <p class="measured">フォルダを増やすと管理画面の付与候補にも自動で並びます（コード変更不要）。</p>
+
+    <h3>資料の断片がどの群に属するかの判定</h3>
+    <p>検索SQLの中で、次の順に判定します（<code>knowledge_rag._ACCESS_GROUP_SQL</code>）。</p>
+    <ol>
+      <li>外部事例・レポート、または公式IR由来、または分類が「IR公表資料」 → <b>公開IR</b></li>
+      <li>株主総会の議事録 → <b>株主総会議事録</b>／過去問答 → <b>株主総会Q&amp;A</b></li>
+      <li>それ以外 → メタデータの分類名。分類が無ければ <b>その他内部</b></li>
+    </ol>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>データ群</th><th class="num">索引内の断片数</th><th>備考</th></tr></thead>
+        <tbody>
+          <tr><td>公開IR</td><td class="num">6,431</td><td>有報・決算資料・統合報告書・外部事例。全員が閲覧可</td></tr>
+          <tr><td>株主総会議事録</td><td class="num">120</td><td rowspan="4">付与が必要</td></tr>
+          <tr><td>株主総会Q&amp;A</td><td class="num">84</td></tr>
+          <tr><td>中期経営計画</td><td class="num">83</td></tr>
+          <tr><td>社内資料 ／ 経営会議議事録</td><td class="num">7 ／ 3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="measured">2026-08-25 時点、索引の総断片 6,728。</p>
+  </section>
+
+  <!-- ══════════ 6 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">6</span>実効権限の合成<small>deny-by-default</small></h2>
+    <div class="formula">実効権限 ＝ <span class="plus">公開IR</span>（常に全員）
+         <span class="plus">＋ ロール既定</span>　担当＝社内資料・中期経営計画
+                    　コア＝＋議事録類・株主総会Q&amp;A
+                    　経営層・事務局・管理者＝全群（フォルダが増えても自動追随）
+         <span class="plus">＋ 個別付与</span>　user_grants（管理画面から1件ずつ）</div>
+    <p>
+      台帳に無いユーザー、および<b>有効フラグを外したユーザー</b>は公開IRのみです。
+      個別付与は現存する群だけを有効とし、フォルダが消えた群の付与は自動的に無視されます。
+    </p>
+    <h3>稼働中の台帳での例</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:14%">アカウント</th><th style="width:14%">ロール</th><th style="width:20%">個別付与</th><th>実効的に見えるデータ群</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>test</code></td><td>担当</td><td>事業KPI:都市交通</td>
+            <td>公開IR／社内資料／中期経営計画／事業KPI:都市交通<br>
+              <span class="pill deny">見えない</span> 株主総会Q&amp;A・株主総会議事録・経営会議議事録・その他内部・他5事業のKPIボード</td>
+          </tr>
+          <tr>
+            <td><code>hhhd</code></td><td>事務局</td><td>—</td>
+            <td>全12群＋公開IR（ロール既定で全群）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="measured"><code>test</code> が検索対象にできる断片は 6,521／6,728（96.9%）。残り207断片は検索結果に一切現れません。</p>
+  </section>
+
+  <!-- ══════════ 7 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">7</span>強制ポイント<small>データが出る経路のすべて</small></h2>
+    <p>
+      画面を隠すだけでは不十分なため、<b>データが利用者へ届く経路すべて</b>で権限を効かせます。
+      <code>app.py</code> は <code>_data_allowed(request)</code>／<code>_sensing_allowed(request)</code> の
+      2つの入口関数を経由し、20か所で参照しています。
+    </p>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:22%">経路</th><th>効かせ方</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>RAG検索</b></td>
+            <td>SQLの<code>WHERE</code>句で絞る。<b>順位付けの前</b>に除外する（後段で捨てると、不許可資料が上位8件を占有して許可資料が押し出されるため）</td>
+          </tr>
+          <tr>
+            <td><b>経営AI相談</b></td>
+            <td>回答生成の前に、許可データ群を検索へ渡す</td>
+          </tr>
+          <tr>
+            <td><b>計画点検の補助参照</b></td>
+            <td>過去の経営会議の論点・指標実勢・前期計画などをプロンプトへ入れる前に絞る。<b>プロンプトへの注入は検索と同格の出口</b></td>
+          </tr>
+          <tr>
+            <td><b>センシングボード</b></td>
+            <td>権限のない事業体は数値をHTMLに<b>一切埋め込まず</b>、施錠カードだけを描画（このページは全KPIをJSONで内包する構造のため、非表示では不十分）</td>
+          </tr>
+          <tr>
+            <td><b>管理機能</b></td>
+            <td>内部資料の登録・削除、ユーザー・権限管理はシステム管理者のみ（<code>is_admin</code> ゲート）</td>
+          </tr>
+          <tr>
+            <td><b>株主総会Q&amp;A</b></td>
+            <td>台帳のロールを工程権限へ写像。<b>台帳に登録の無い利用者は工程の操作を一切許可しない</b></td>
+          </tr>
+          <tr>
+            <td><b>AI回答履歴</b></td>
+            <td>本人の履歴のみ表示（管理者は全件）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════ 8 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">8</span>ログイン</h2>
+    <p>照合は<b>台帳のパスワード → <code>.env</code> の資格情報</b>の順です。</p>
+    <ul>
+      <li><b>台帳のパスワード</b>：管理画面から設定。PBKDF2-HMAC-SHA256・20万回・ユーザーごとのソルト。
+        ハッシュは画面にもログにも出さず、「設定済みかどうか」だけを返す</li>
+      <li><b>.env の <code>APP_CREDENTIALS</code></b>：<code>user:pass,user2:pass2</code> 形式。初期管理者と後方互換のため併用できる</li>
+      <li><b>有効フラグ＝ログイン可否</b>：台帳で無効にしたユーザーは、<code>.env</code> に載っていてもログインできない（退職・停止を管理画面で一元管理するため）</li>
+      <li><b>資格情報が1件も無い場合は起動を中止</b>：設定の書き忘れが「認証なしで公開」になるのを防ぐ。
+        意図して外すときだけ <code>ALLOW_NO_AUTH=true</code> を指定する（このときだけ開発用の共通表示名が管理者扱いになる）</li>
+    </ul>
+    <div class="note">
+      認証は現在Gradioの Basic 認証ですが、台帳のキーは「認証済みユーザー名」だけなので、
+      <b>SSO・OIDCへ差し替えても台帳と強制ポイントは変更不要</b>です。
+    </div>
+  </section>
+
+  <!-- ══════════ 9 ══════════ -->
+  <section>
+    <h2 class="sec"><span class="no">9</span>現時点の限界</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th style="width:26%">できていないこと</th><th>内容と、必要になったときの対処</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>文書単位の出し分け</b></td>
+            <td>粒度は「データ群（フォルダ）単位」。同じフォルダ内の一部の文書だけを見せる／隠すことはできない。
+              必要なら分類フォルダを分けるのが最短で、それ以上の粒度は文書ごとのタグ列と付与テーブルの追加が要る</td>
+          </tr>
+          <tr>
+            <td><b>株主総会Q&amp;Aの行レベル制御</b></td>
+            <td>質問1件ごとの可視性は未実装で、工程単位の権限まで。必要な列
+              （<code>scope</code>／<code>owner_unit</code>／<code>disclosure</code>）は既にあり、
+              データ取得層のWHERE句へ接続すれば実装できる（画面側は変更不要）</td>
+          </tr>
+          <tr>
+            <td><b>監視設定の書き込み権限</b></td>
+            <td>センシングの閲覧は事業体別に制御しているが、閾値・取得条件の変更は誰でも行える。
+              書き込み側にも同じ事業体権限を効かせる余地がある</td>
+          </tr>
+          <tr>
+            <td><b>DB層での強制</b></td>
+            <td>強制はアプリ層のみ。ファイルに触れる人はDBを直接読めるため、OSレベルの権限とサーバのアクセス管理が前提。
+              複数プロセス化やBIツールの直接接続が必要になった時点で、PostgreSQL＋RLSへの移行を判断する（§3のC案）</td>
+          </tr>
+          <tr>
+            <td><b>認証の強度</b></td>
+            <td>Basic認証のため、多要素認証・パスワードポリシー・ロックアウトは持たない。
+              本番展開時はSSOへの差し替えを想定（台帳は変更不要）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="doc">
+    関連資料：開発者マニュアル §5.1（アカウント運用の手順）／アプリ精査レポート。<br>
+    実装：<code>access_control.py</code>（台帳）、<code>knowledge_rag.py</code>（検索の絞り込み）、
+    <code>app.py</code>（各画面の強制ポイント）、<code>agm/workflow.py</code>（株主総会Q&amp;Aのロール写像）。
+  </footer>
+
+</div>
+
+<script>
+  document.documentElement.setAttribute("lang", "ja-JP");
+  if (!document.querySelector("meta[name=viewport]")) {
+    var vp = document.createElement("meta");
+    vp.name = "viewport"; vp.content = "width=device-width, initial-scale=1";
+    document.head.appendChild(vp);
+  }
+</script>
