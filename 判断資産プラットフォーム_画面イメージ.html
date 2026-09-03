@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>判断資産プラットフォーム — 画面イメージ（サンプル環境）</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#fafaf9; --surface:#ffffff; --ink:#1b1f23; --soft:#4a5158; --muted:#8a9098;
+  --hair:#e6e8e4; --hair2:#eff0ed;
+  --green:#86bc25; --gdeep:#4f7a0d; --tint:#f3f8e8; --tintb:#dcead0;
+  --amber:#c9930a; --ambert:#fdf6e3; --red:#c0463c; --redt:#fbeeec;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{background:var(--paper);font-family:'Noto Sans JP',sans-serif;color:var(--ink);font-size:13px;line-height:1.6;}
+.num{font-family:'Inter','Noto Sans JP',sans-serif;font-variant-numeric:tabular-nums;}
+
+/* ---------- app shell ---------- */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--hair);
+  display:flex;align-items:center;gap:18px;padding:0 28px;height:52px;
+}
+.mark{display:flex;align-items:baseline;gap:9px;}
+.mark .jp{font-size:15px;font-weight:700;letter-spacing:.06em;}
+.mark .en{font-family:'Inter',sans-serif;font-size:9px;font-weight:600;letter-spacing:.14em;color:var(--gdeep);}
+.env{
+  margin-left:6px;font-size:10.5px;color:var(--amber);background:var(--ambert);
+  border:1px solid #f0e2bb;padding:2px 9px;border-radius:3px;font-weight:600;
+}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--soft);}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;}
+
+.tabs{background:var(--surface);border-bottom:1px solid var(--hair);padding:0 28px;display:flex;gap:2px;}
+.tab{
+  appearance:none;border:none;background:none;cursor:pointer;
+  font-family:inherit;font-size:13px;color:var(--muted);
+  padding:13px 18px 11px;border-bottom:2px solid transparent;display:flex;gap:8px;align-items:baseline;
+}
+.tab .r{font-size:10.5px;color:var(--muted);}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--green);}
+.tab.on .r{color:var(--gdeep);}
+.tab:focus-visible{outline:2px solid var(--gdeep);outline-offset:-2px;}
+
+.stage{max-width:1440px;margin:0 auto;padding:22px 28px 40px;}
+.pane{display:none;}
+.pane.on{display:block;}
+
+/* ---------- shared atoms ---------- */
+.ai{
+  display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;
+  color:var(--gdeep);letter-spacing:.04em;
+}
+.ai::before{content:"";width:7px;height:7px;background:var(--green);border-radius:2px;}
+.src{font-size:10.5px;color:var(--muted);}
+.btn{
+  appearance:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;
+  border:1px solid var(--hair);background:var(--surface);color:var(--ink);
+  padding:7px 14px;border-radius:5px;
+}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff;}
+.btn:focus-visible{outline:2px solid var(--gdeep);outline-offset:1px;}
+.chip{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:3px;border:1px solid var(--hair);color:var(--soft);background:var(--surface);}
+.chip.warn{color:#8a6606;background:var(--ambert);border-color:#eddfb6;}
+.chip.risk{color:#93362e;background:var(--redt);border-color:#efd2ce;}
+.chip.ok{color:var(--gdeep);background:var(--tint);border-color:var(--tintb);}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:8px;}
+.h-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:12px;}
+.h-row h2{font-size:15px;font-weight:700;}
+.h-row .sub{font-size:11.5px;color:var(--muted);}
+
+/* ============================================================
+   TAB 1 — 投資ポテンシャル
+============================================================ */
+.strip{display:flex;gap:14px;margin-bottom:18px;}
+.stat{background:var(--surface);border:1px solid var(--hair);border-radius:8px;padding:12px 18px;flex:1;}
+.stat .k{font-size:11px;color:var(--muted);}
+.stat .v{font-size:20px;font-weight:700;margin-top:2px;}
+.stat .v small{font-size:11px;font-weight:500;color:var(--soft);margin-left:4px;}
+.stat.hl{border-color:var(--tintb);background:var(--tint);}
+.p1-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:18px;align-items:start;}
+
+.map{padding:18px 20px 16px;}
+.matrix{display:grid;grid-template-columns:112px repeat(3,1fr);gap:5px;margin-top:6px;}
+.mx-h{font-size:11px;color:var(--muted);text-align:center;padding-bottom:4px;}
+.mx-r{font-size:11.5px;color:var(--soft);display:flex;align-items:center;font-weight:500;}
+.cell{
+  border-radius:5px;padding:8px 10px;min-height:52px;position:relative;cursor:default;
+  border:1px solid transparent;
+}
+.cell .roi{font-size:13px;font-weight:700;}
+.cell .lab{font-size:10px;color:var(--soft);margin-top:1px;line-height:1.4;}
+.c0{background:#f4f5f2;border-color:var(--hair2);}
+.c0 .roi{color:var(--muted);}
+.c1{background:#eef4e0;}
+.c2{background:#dfeec2;}
+.c3{background:#c8e29a;}
+.c3 .roi,.c3 .lab{color:#2c4506;}
+.cell.pick{border:1.5px solid var(--gdeep);}
+.cell.pick::after{
+  content:"候補";position:absolute;top:-8px;right:8px;font-size:9px;font-weight:700;
+  background:var(--gdeep);color:#fff;padding:1px 7px;border-radius:3px;letter-spacing:.08em;
+}
+.legend{display:flex;gap:14px;margin-top:12px;font-size:10.5px;color:var(--muted);align-items:center;}
+.hd-h{
+  margin-top:18px;padding-top:14px;border-top:1px solid var(--hair);
+  display:flex;align-items:baseline;gap:10px;
+}
+.hd-h .t{font-size:13px;font-weight:700;}
+.hd-h .sub{font-size:11px;color:var(--muted);}
+.hd-rows{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.hd-row{
+  display:grid;grid-template-columns:1.1fr 122px 1.7fr;gap:14px;align-items:center;
+  border-radius:6px;padding:9px 12px;position:relative;border:1px solid transparent;
+}
+.hd-row .nm{font-size:12px;font-weight:600;}
+.hd-row .nm small{display:block;font-size:10px;font-weight:400;color:var(--soft);margin-top:1px;}
+.hd-row .ev{font-size:12.5px;font-weight:700;white-space:nowrap;}
+.hd-row .ev small{display:block;font-size:9.5px;font-weight:500;color:var(--soft);}
+.hd-row .why{font-size:10.5px;color:var(--soft);line-height:1.55;}
+.hd-row.pick{border-color:var(--gdeep);}
+.aidx{
+  border:1.5px solid var(--gdeep);border-radius:7px;background:var(--tint);
+  padding:10px 12px 11px;position:relative;
+}
+.aidx::after{
+  content:"候補";position:absolute;top:-8px;right:8px;font-size:9px;font-weight:700;
+  background:var(--gdeep);color:#fff;padding:1px 7px;border-radius:3px;letter-spacing:.08em;
+}
+.ax-head{display:grid;grid-template-columns:1.1fr 122px 1.7fr;gap:14px;align-items:center;padding:0 0 8px;}
+.ax-head .nm{font-size:12px;font-weight:700;}
+.ax-head .nm small{display:block;font-size:10px;font-weight:400;color:var(--soft);margin-top:1px;}
+.ax-head .ev{font-size:12.5px;font-weight:700;white-space:nowrap;}
+.ax-head .ev small{font-size:9.5px;font-weight:500;color:var(--soft);margin-left:4px;}
+.ax-head .why{font-size:10.5px;color:var(--soft);line-height:1.55;}
+.ax-rows{display:flex;flex-direction:column;gap:4px;}
+.ax-row{
+  display:grid;grid-template-columns:1.1fr 122px 1.7fr;gap:14px;align-items:center;
+  background:var(--surface);border:1px solid var(--tintb);border-radius:5px;padding:6px 12px;
+}
+.ax-row .nm{font-size:11px;font-weight:600;}
+.ax-row .ev{font-size:11.5px;font-weight:700;white-space:nowrap;}
+.ax-row .ev small{font-size:9px;font-weight:500;color:var(--soft);margin-left:3px;}
+.ax-row .why{font-size:10px;color:var(--soft);line-height:1.5;}
+.hd-row.pick::after{
+  content:"候補";position:absolute;top:-8px;right:8px;font-size:9px;font-weight:700;
+  background:var(--gdeep);color:#fff;padding:1px 7px;border-radius:3px;letter-spacing:.08em;
+}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:5px;}
+
+.opps{display:flex;flex-direction:column;gap:12px;}
+.opp{padding:15px 18px 13px;}
+.opp .top{display:flex;align-items:baseline;gap:10px;}
+.opp .rank{font-family:'Inter',sans-serif;font-size:11px;font-weight:700;color:var(--gdeep);}
+.opp h3{font-size:13.5px;font-weight:700;flex:1;}
+.opp .roi-badge{font-size:12px;font-weight:700;color:var(--gdeep);white-space:nowrap;}
+.opp .thesis{margin-top:5px;font-size:12px;color:var(--soft);}
+.opp .basis{
+  margin-top:9px;border-top:1px dashed var(--hair);padding-top:8px;
+  font-size:11px;color:var(--muted);line-height:1.7;
+}
+.opp .basis b{color:var(--soft);font-weight:600;}
+.opp .foot{margin-top:10px;display:flex;gap:8px;align-items:center;}
+.opp .foot .src{margin-left:auto;}
+
+/* ============================================================
+   TAB 2 — 投資判断の記憶装置
+============================================================ */
+.p2-grid{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start;}
+.queue{overflow:hidden;}
+.queue .qh{padding:13px 16px 10px;border-bottom:1px solid var(--hair);font-size:12px;font-weight:700;}
+.qi{padding:12px 16px;border-bottom:1px solid var(--hair2);cursor:default;}
+.qi:last-child{border-bottom:none;}
+.qi .t{font-size:12.5px;font-weight:600;line-height:1.5;}
+.qi .m{font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;gap:8px;}
+.qi.sel{background:var(--tint);border-left:3px solid var(--green);padding-left:13px;}
+.memo{padding:20px 24px 18px;}
+.memo .head{display:flex;align-items:flex-start;gap:16px;}
+.memo h2{font-size:16.5px;font-weight:700;line-height:1.5;}
+.memo .meta{font-size:11.5px;color:var(--muted);margin-top:4px;}
+.memo .due{
+  margin-left:auto;text-align:right;background:var(--paper);border:1px solid var(--hair);
+  border-radius:7px;padding:8px 14px;white-space:nowrap;
+}
+.due .k{font-size:10px;color:var(--muted);}
+.due .v{font-size:15px;font-weight:700;}
+.cover{display:flex;gap:22px;margin-top:14px;padding:12px 16px;background:var(--paper);border:1px solid var(--hair);border-radius:7px;align-items:center;}
+.cover .item{font-size:11.5px;color:var(--soft);}
+.cover .item b{font-size:14px;color:var(--ink);}
+.cover .warnb{margin-left:auto;}
+.sect{margin-top:18px;}
+.sect > .st{display:flex;align-items:baseline;gap:10px;font-size:13px;font-weight:700;margin-bottom:9px;}
+.sect > .st .c{font-size:11px;color:var(--muted);font-weight:500;}
+.issue{display:flex;gap:12px;padding:10px 14px;border:1px solid var(--hair);border-radius:6px;background:var(--surface);align-items:baseline;}
+.issue + .issue{margin-top:7px;}
+.issue .q{flex:1;font-size:12.5px;}
+.issue .who{font-size:10.5px;color:var(--muted);white-space:nowrap;}
+.issue.miss{border-color:#eddfb6;background:var(--ambert);}
+.ptable{width:100%;border-collapse:collapse;font-size:12px;}
+.ptable th{
+  text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);
+  border-bottom:1.5px solid var(--ink);padding:5px 10px 6px;
+}
+.ptable td{border-bottom:1px solid var(--hair2);padding:9px 10px;vertical-align:top;color:var(--soft);}
+.ptable td:first-child{color:var(--ink);font-weight:500;}
+.sim{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sim .card{padding:12px 15px;}
+.sim h4{font-size:12.5px;font-weight:700;}
+.sim .m{font-size:11px;color:var(--muted);margin-top:2px;}
+.sim p{font-size:11.5px;color:var(--soft);margin-top:6px;}
+.memo .foot{
+  margin-top:18px;padding-top:12px;border-top:1px solid var(--hair);
+  display:flex;gap:10px;align-items:center;
+}
+.memo .foot .note{margin-left:auto;font-size:11px;color:var(--muted);}
+
+/* ============================================================
+   TAB 3 — M&A インテリジェンス
+============================================================ */
+.p3-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;align-items:start;}
+.resurf{display:flex;flex-direction:column;gap:12px;}
+.rcard{padding:15px 18px 13px;}
+.rcard .top{display:flex;align-items:baseline;gap:10px;}
+.rcard h3{font-size:13.5px;font-weight:700;flex:1;}
+.fit{font-size:11px;color:var(--gdeep);font-weight:700;white-space:nowrap;}
+.rcard .m{font-size:11px;color:var(--muted);margin-top:2px;}
+.unlock{
+  margin-top:10px;display:grid;grid-template-columns:1fr 26px 1fr;gap:8px;align-items:center;
+}
+.u-was,.u-now{border-radius:6px;padding:8px 12px;font-size:11.5px;line-height:1.6;}
+.u-was{background:var(--paper);border:1px solid var(--hair);color:var(--soft);}
+.u-now{background:var(--tint);border:1px solid var(--tintb);}
+.u-k{font-size:9.5px;font-weight:700;letter-spacing:.06em;color:var(--muted);display:block;}
+.u-now .u-k{color:var(--gdeep);}
+.u-arrow{text-align:center;color:#b9bfb6;font-size:12px;}
+.rcard .foot{margin-top:10px;display:flex;gap:8px;align-items:center;}
+.rcard .foot .src{margin-left:auto;}
+.p3-side{display:flex;flex-direction:column;gap:18px;}
+.diag{padding:15px 18px;}
+.diag .row{display:flex;align-items:baseline;gap:10px;}
+.diag h3{font-size:13px;font-weight:700;flex:1;}
+.prog{height:5px;background:var(--hair2);border-radius:3px;margin-top:10px;overflow:hidden;}
+.prog i{display:block;height:100%;width:72%;background:var(--green);border-radius:3px;}
+.diag .m{font-size:11px;color:var(--muted);margin-top:7px;}
+.feed{overflow:hidden;}
+.feed .qh{padding:13px 16px 10px;border-bottom:1px solid var(--hair);font-size:12px;font-weight:700;display:flex;gap:8px;align-items:baseline;}
+.feed .qh .sub{font-size:10.5px;color:var(--muted);font-weight:500;}
+.ev{padding:11px 16px;border-bottom:1px solid var(--hair2);display:flex;gap:10px;}
+.ev:last-child{border-bottom:none;}
+.ev .dot{width:7px;height:7px;border-radius:2px;background:var(--green);margin-top:6px;flex:0 0 auto;}
+.ev.n .dot{background:#c9cdc6;}
+.ev .b{font-size:12px;line-height:1.6;}
+.ev .b small{display:block;font-size:10.5px;color:var(--muted);margin-top:1px;}
+
+.disclaimer{
+  max-width:1440px;margin:6px auto 0;padding:0 28px;
+  font-size:10.5px;color:var(--muted);
+}
+@media (max-width:980px){
+  .p1-grid,.p2-grid,.p3-grid{grid-template-columns:1fr;}
+  .strip{flex-wrap:wrap;}
+}
+@media (prefers-reduced-motion:no-preference){
+  .pane.on{animation:in .18s ease-out;}
+  @keyframes in{from{opacity:.4}to{opacity:1}}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="mark"><span class="jp">判断資産</span><span class="en">DECISION ASSET PLATFORM</span></div>
+  <span class="env">サンプル環境 — 架空データ</span>
+  <div class="right">
+    <span>グループ経営企画</span>
+    <div class="avatar">経</div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="ユースケース">
+  <button class="tab on" role="tab" aria-selected="true" data-t="p1"><span class="r">探す</span>投資ポテンシャル</button>
+  <button class="tab" role="tab" aria-selected="false" data-t="p2"><span class="r">審る</span>案件精査メモ</button>
+  <button class="tab" role="tab" aria-selected="false" data-t="p3"><span class="r">掴む</span>M&amp;Aインテリジェンス</button>
+</nav>
+
+<main class="stage">
+
+<!-- ==================== TAB 1 : 投資ポテンシャル ==================== -->
+<section class="pane on" id="p1" role="tabpanel">
+  <div class="strip">
+    <div class="stat"><div class="k">対象年度</div><div class="v">FY2027<small>配分審議まで 41日</small></div></div>
+    <div class="stat"><div class="k">読み込み済みデータ</div><div class="v num">103社<small>月次連結・投資実績・市場指標</small></div></div>
+    <div class="stat hl"><div class="k">AIが検出した投資候補</div><div class="v num">7領域<small>前回審議から +2</small></div></div>
+    <div class="stat"><div class="k">未消化の投資余地（試算）</div><div class="v num">640<small>億円レンジ中央値</small></div></div>
+  </div>
+
+  <div class="p1-grid">
+    <div class="card map">
+      <div class="h-row">
+        <h2>投資ポテンシャル・マップ</h2>
+        <span class="sub">追加資本のリターン期待（レンジ中央値、維持投資除く）</span>
+      </div>
+      <div class="matrix">
+        <div></div>
+        <div class="mx-h">既存事業の深化</div><div class="mx-h">周辺領域への拡張</div><div class="mx-h">新領域</div>
+
+        <div class="mx-r">都市交通</div>
+        <div class="cell c1"><div class="roi num">4–6%</div><div class="lab">駅ナカ収益化の余地</div></div>
+        <div class="cell c2 pick"><div class="roi num">7–10%</div><div class="lab">駅拠点×生活サービス</div></div>
+        <div class="cell c0"><div class="roi num">—</div><div class="lab">シグナル不足</div></div>
+
+        <div class="mx-r">不動産</div>
+        <div class="cell c2"><div class="roi num">6–9%</div><div class="lab">賃貸ポートフォリオ更新</div></div>
+        <div class="cell c3 pick"><div class="roi num">9–13%</div><div class="lab">沿線外・物流用途</div></div>
+        <div class="cell c1"><div class="roi num">5–8%</div><div class="lab">運営受託モデル</div></div>
+
+        <div class="mx-r">エンタテインメント</div>
+        <div class="cell c2"><div class="roi num">6–8%</div><div class="lab">興行の周辺消費取り込み</div></div>
+        <div class="cell c3 pick"><div class="roi num">10–14%</div><div class="lab">IP二次利用・配信</div></div>
+        <div class="cell c1"><div class="roi num">4–7%</div><div class="lab">体験型施設</div></div>
+
+        <div class="mx-r">ホテル</div>
+        <div class="cell c1"><div class="roi num">5–7%</div><div class="lab">既存館リノベーション</div></div>
+        <div class="cell c1"><div class="roi num">5–8%</div><div class="lab">運営特化での展開</div></div>
+        <div class="cell c0"><div class="roi num">—</div><div class="lab">シグナル不足</div></div>
+
+        <div class="mx-r">情報・通信</div>
+        <div class="cell c1"><div class="roi num">5–7%</div><div class="lab">沿線データ活用</div></div>
+        <div class="cell c2"><div class="roi num">7–9%</div><div class="lab">法人向けサービス</div></div>
+        <div class="cell c1"><div class="roi num">4–8%</div><div class="lab">周辺M&amp;A</div></div>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:#f4f5f2"></i>データ不足</span>
+        <span><i class="sw" style="background:#eef4e0"></i>〜6%</span>
+        <span><i class="sw" style="background:#dfeec2"></i>6–9%</span>
+        <span><i class="sw" style="background:#c8e29a"></i>9%〜</span>
+        <span style="margin-left:auto">セルを選ぶと根拠データを表示します</span>
+      </div>
+
+      <div class="hd-h"><span class="t">ホールディングス枠</span><span class="sub">事業の間・外にある機会 — 単一事業からは起案されない領域</span></div>
+      <div class="hd-rows">
+        <div class="hd-row c2 pick">
+          <div class="nm">グループ横断テーマ<small>共通ID・クロスユース深化への投資</small></div>
+          <div class="ev num">8–12%<small>間接効果含む</small></div>
+          <div class="why">効果が各事業のRoIに分散計上されるため、事業単体の物差しでは恒常的に過小評価。HD枠でのみ正当化可能</div>
+        </div>
+        <div class="aidx">
+          <div class="ax-head">
+            <div class="nm">AI・DX投資枠<small>グループ共通のデジタル基盤と各事業への適用</small></div>
+            <div class="ev num">8–18%<small>領域別</small></div>
+            <div class="why">効果の物差しが領域で異なるため内訳で評価。共通基盤はBX推進部がオーナー、適用は各事業と共同</div>
+          </div>
+          <div class="ax-rows">
+            <div class="ax-row">
+              <div class="nm">バックオフィス業務への生成AI適用</div>
+              <div class="ev num">12–18%<small>回収 1–2年</small></div>
+              <div class="why">コスト削減型で回収最速・効果測定が明確——最初に実績をつくる領域</div>
+            </div>
+            <div class="ax-row">
+              <div class="nm">需要予測・ダイナミックプライシング</div>
+              <div class="ev num">8–14%<small>売上直結</small></div>
+              <div class="why">交通・ホテル・興行など「在庫が消える」事業ほど効く。トップラインに直接作用</div>
+            </div>
+            <div class="ax-row">
+              <div class="nm">経営判断のAI化（判断資産——本構想）</div>
+              <div class="ev num">定量＋回避価値</div>
+              <div class="why">差し戻し・減損の回避価値が主。大型案件1件の判断改善で枠全体を回収し得る</div>
+            </div>
+            <div class="ax-row">
+              <div class="nm">データ基盤・グループ共通IDの整備</div>
+              <div class="ev num">単体RoIなし<small>enabler</small></div>
+              <div class="why">上記すべての前提。効果は適用側に計上されるため、枠として先行投資を正当化</div>
+            </div>
+          </div>
+        </div>
+        <div class="hd-row c1">
+          <div class="nm">新領域探索<small>CVC・マイノリティ出資</small></div>
+          <div class="ev num">−〜15%+<small>分散が前提</small></div>
+          <div class="why">単発RoIではなくポートフォリオのオプション価値で評価。撤退基準と件数分散を枠の設計に内蔵</div>
+        </div>
+        <div class="hd-row c1">
+          <div class="nm">M&amp;A・資本提携<small>非連続成長の獲得</small></div>
+          <div class="ev num">案件依存<small>個別評価</small></div>
+          <div class="why">再浮上候補 3件が条件監視中——個別評価は「掴む」タブで管理。枠としては待機資金の規律を評価</div>
+        </div>
+        <div class="hd-row c0">
+          <div class="nm">脱炭素・エネルギー<small>グループ共通インフラ</small></div>
+          <div class="ev num">4–6%<small>+規制対応価値</small></div>
+          <div class="why">財務リターンは低位だが、規制・開示要請により不可避。先行投資による調達単価の優位を別軸で計上</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="opps">
+      <div class="h-row" style="margin-bottom:0">
+        <h2>今週の投資候補</h2>
+        <span class="sub">AIが根拠付きで提案 — 決定は配分審議で</span>
+      </div>
+      <div class="card opp">
+        <div class="top"><span class="rank num">1</span><h3>沿線外・物流不動産への資本再配分</h3><span class="roi-badge num">RoI 9–13%</span></div>
+        <p class="thesis">賃貸オフィスの回転売却益を物流用途へ振り替えた場合、投下資本あたりの期待リターンが現ポートフォリオ平均を上回ります。</p>
+        <div class="basis"><span class="ai">AIの根拠</span>　<b>①</b> 過去5年の用途別実績リターン差 +3.2pt　<b>②</b> 空室率トレンド（外部データ）　<b>③</b> 類似判断：2023年 産業用地取得案件の事後実績</div>
+        <div class="foot">
+          <button class="btn primary">検討を起票</button>
+          <button class="btn">根拠データを開く</button>
+          <span class="src">更新: 今朝 6:00</span>
+        </div>
+      </div>
+      <div class="card opp">
+        <div class="top"><span class="rank num">2</span><h3>エンタテインメントIPの二次利用拡大</h3><span class="roi-badge num">RoI 10–14%</span></div>
+        <p class="thesis">興行収入に対し二次利用収益の比率が業界水準を下回っており、追加投資1単位あたりの伸び代が最大です。</p>
+        <div class="basis"><span class="ai">AIの根拠</span>　<b>①</b> 二次利用比率 12%（業界中央値 31%）　<b>②</b> 配信市場の成長率（外部データ）　<b>③</b> 自社アーカイブ資産の未収益化領域</div>
+        <div class="foot">
+          <button class="btn primary">検討を起票</button>
+          <button class="btn">根拠データを開く</button>
+          <span class="src">更新: 今朝 6:00</span>
+        </div>
+      </div>
+      <div class="card opp">
+        <div class="top"><span class="rank num">3</span><h3>駅拠点×生活サービスの面展開</h3><span class="roi-badge num">RoI 7–10%</span></div>
+        <p class="thesis">乗降人員が回復した駅群のうち、生活サービス未展開の12駅で先行事例と同水準の収益化余地があります。</p>
+        <div class="basis"><span class="ai">AIの根拠</span>　<b>①</b> 先行3駅の投資実績リターン　<b>②</b> 駅別乗降トレンド　<b>③</b> 商圏人口の変化（外部データ）</div>
+        <div class="foot">
+          <button class="btn primary">検討を起票</button>
+          <button class="btn">根拠データを開く</button>
+          <span class="src">更新: 今朝 6:00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TAB 2 : 案件精査メモ ==================== -->
+<section class="pane" id="p2" role="tabpanel">
+  <div class="p2-grid">
+    <div class="card queue">
+      <div class="qh">審議予定の案件</div>
+      <div class="qi sel">
+        <div class="t">（仮称）うめきた東 複合開発 追加投資</div>
+        <div class="m"><span>不動産</span><span class="num">480億円</span><span>10/8 委員会</span></div>
+      </div>
+      <div class="qi">
+        <div class="t">車両更新・第3期</div>
+        <div class="m"><span>都市交通</span><span class="num">210億円</span><span>10/8 委員会</span></div>
+      </div>
+      <div class="qi">
+        <div class="t">宿泊特化型ホテル 2館取得</div>
+        <div class="m"><span>ホテル</span><span class="num">96億円</span><span>11/12 委員会</span></div>
+      </div>
+      <div class="qi">
+        <div class="t">興行チケットシステム刷新</div>
+        <div class="m"><span>エンタテインメント</span><span class="num">38億円</span><span>11/12 委員会</span></div>
+      </div>
+    </div>
+
+    <div class="card memo">
+      <div class="head">
+        <div>
+          <h2>案件精査メモ — （仮称）うめきた東 複合開発 追加投資</h2>
+          <div class="meta">起案：不動産事業部　投資額 <span class="num">480億円</span>　起案書 v3・収支計画を読み込み済み</div>
+        </div>
+        <div class="due"><div class="k">投資委員会まで</div><div class="v num">14日</div></div>
+      </div>
+
+      <div class="cover">
+        <div class="item">この類型で過去に問われた論点　<b class="num">12</b>件</div>
+        <div class="item">本資料でカバー済み　<b class="num">9</b>件</div>
+        <div class="item">前提の要確認　<b class="num">2</b>箇所</div>
+        <span class="chip warn warnb">未回答 3件 — 上程前の確認を推奨</span>
+      </div>
+
+      <div class="sect">
+        <div class="st">未回答の論点<span class="c">大規模複合開発の類型・過去8案件の審議から</span></div>
+        <div class="issue miss"><div class="q">竣工後3年間の賃料下振れシナリオと撤退・転用基準はあるか</div><div class="who">2022年 X案件で差し戻し理由</div></div>
+        <div class="issue miss"><div class="q">周辺で進行中の競合開発の供給床面積を織り込んでいるか</div><div class="who">過去8案件中 6件で質問</div></div>
+        <div class="issue miss"><div class="q">建築費上振れ時の投資上限（キャップ）の設定</div><div class="who">過去8案件中 5件で質問</div></div>
+      </div>
+
+      <div class="sect">
+        <div class="st">前提の要確認<span class="c">収支計画の前提 × 過去の同種前提の乖離実績 × 外部実データ</span></div>
+        <table class="ptable">
+          <tr><th>計画が置く前提</th><th>過去の同種前提の実績</th><th>外部実データ</th><th>所見</th></tr>
+          <tr>
+            <td>オフィス賃料 年+2.0%成長</td>
+            <td>同種前提4件中3件が下振れ（平均 −1.1pt）</td>
+            <td>直近4四半期の市況は横ばい</td>
+            <td><span class="chip risk">楽観の可能性</span></td>
+          </tr>
+          <tr>
+            <td>商業区画 稼働率 97%</td>
+            <td>類似立地の初年度実績 88–94%</td>
+            <td>—</td>
+            <td><span class="chip warn">感度分析を推奨</span></td>
+          </tr>
+          <tr>
+            <td>建築費単価</td>
+            <td>直近2案件で +8〜12%上振れ</td>
+            <td>建設物価指数は上昇継続</td>
+            <td><span class="chip warn">上限設定を推奨</span></td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="sect">
+        <div class="st">類似案件とその後<span class="c">判断資産から自動照合</span></div>
+        <div class="sim">
+          <div class="card">
+            <h4>2019年 大規模複合開発（承認）</h4>
+            <div class="m">投資額 <span class="num">520億円</span>・竣工済み</div>
+            <p>賃料前提は計画比 −0.8pt で着地。商業区画は3年目に計画到達。撤退基準を承認時に明文化。</p>
+          </div>
+          <div class="card">
+            <h4>2022年 X案件（差し戻し→再承認）</h4>
+            <div class="m">投資額 <span class="num">310億円</span></div>
+            <p>下振れシナリオ不足で差し戻し。転用条件を追記して再上程・承認。本案件と論点構造が一致。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <button class="btn primary">審議資料に添付</button>
+        <button class="btn">起案部門に共有</button>
+        <span class="note">このメモは事実の照合と指摘まで——妥当性の判断は審議の場で行われます</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== TAB 3 : M&A ==================== -->
+<section class="pane" id="p3" role="tabpanel">
+  <div class="p3-grid">
+    <div class="resurf">
+      <div class="h-row" style="margin-bottom:0">
+        <h2>再浮上候補</h2>
+        <span class="sub">見送り時の理由が解消された案件 — 四半期レビュー 10/15 向け</span>
+      </div>
+
+      <div class="card rcard">
+        <div class="top"><h3>（仮称）関西アミューズメント運営会社</h3><span class="fit">条件充足 3/3</span></div>
+        <div class="m">2024年3月 見送り・却下理由：価格</div>
+        <div class="unlock">
+          <div class="u-was"><span class="u-k">見送り時</span>希望EV/EBITDA 11.5x — 社内基準を超過</div>
+          <div class="u-arrow">▶</div>
+          <div class="u-now"><span class="u-k">現在</span>同業の成約水準が 7–8x に低下。主要株主のファンドが償還期を迎え、売却圧力が発生</div>
+        </div>
+        <div class="foot">
+          <button class="btn primary">再検討を起票</button>
+          <button class="btn">当時の検討メモを開く</button>
+          <span class="src">監視開始から 18ヶ月</span>
+        </div>
+      </div>
+
+      <div class="card rcard">
+        <div class="top"><h3>（仮称）沿線バス事業者との資本提携</h3><span class="fit">条件充足 2/3</span></div>
+        <div class="m">2023年11月 見送り・却下理由：タイミング（相手方の意向）</div>
+        <div class="unlock">
+          <div class="u-was"><span class="u-k">見送り時</span>先方は単独での事業継続を選択</div>
+          <div class="u-arrow">▶</div>
+          <div class="u-now"><span class="u-k">現在</span>経営陣交代を開示。中期計画から単独路線の記載が消え、提携協議の窓が開いた可能性</div>
+        </div>
+        <div class="foot">
+          <button class="btn primary">再検討を起票</button>
+          <button class="btn">当時の検討メモを開く</button>
+          <span class="src">監視開始から 10ヶ月</span>
+        </div>
+      </div>
+
+      <div class="card rcard">
+        <div class="top"><h3>（仮称）ホテル運営受託会社</h3><span class="fit">条件充足 1/3</span></div>
+        <div class="m">2025年1月 見送り・却下理由：財務余力（自社側）</div>
+        <div class="unlock">
+          <div class="u-was"><span class="u-k">見送り時</span>大型開発と投資時期が重複</div>
+          <div class="u-arrow">▶</div>
+          <div class="u-now"><span class="u-k">現在</span>FY2026の投資枠に余地。ただし対象の業績開示待ち — 条件充足まで監視継続</div>
+        </div>
+        <div class="foot">
+          <button class="btn">監視を継続</button>
+          <span class="src">監視開始から 8ヶ月</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p3-side">
+      <div class="card diag">
+        <div class="row"><h3>初期診断 — 生成中</h3><span class="chip">新規持ち込み</span></div>
+        <div class="m">（仮称）レジャー施設運営会社 — 証券会社経由・昨日受領</div>
+        <div class="prog"><i></i></div>
+        <div class="m">公開情報の整理 完了 ／ 過去の類似検討 2件を照合中 ／ 完成予定 本日 15:00</div>
+      </div>
+
+      <div class="card feed">
+        <div class="qh">監視シグナル<span class="sub">市況・対象・自社の変化を常時監視</span></div>
+        <div class="ev"><span class="dot"></span><div class="b">同業M&amp;Aの成約マルチプルが2四半期連続で低下<small>市況 — 再浮上候補1に反映済み</small></div></div>
+        <div class="ev"><span class="dot"></span><div class="b">監視対象2社が代表者変更を登記<small>対象企業 — 開示・登記情報</small></div></div>
+        <div class="ev n"><span class="dot"></span><div class="b">FY2026 投資枠の消化率 62%（自社）<small>自社状況 — 財務余力条件の判定に使用</small></div></div>
+        <div class="ev n"><span class="dot"></span><div class="b">監視リストへのアクセス権限を四半期レビュー<small>統制 — インサイダー情報管理</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<p class="disclaimer">画面イメージ：構成・数値はすべて架空のサンプルです。実在の案件・企業・実績値を示すものではありません。</p>
+
+<script>
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => { x.classList.remove('on'); x.setAttribute('aria-selected','false'); });
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+    t.classList.add('on'); t.setAttribute('aria-selected','true');
+    document.getElementById(t.dataset.t).classList.add('on');
+  });
+});
+</script>
+</body>
+</html>
