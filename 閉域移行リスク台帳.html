@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  html { color-scheme: light dark; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>閉域移行リスク台帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;700&family=IBM+Plex+Sans+JP:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+</head>
+<body>
+<style>
+  :root {
+    --bg:#eceff4; --surface:#ffffff; --surface-2:#f4f7f9;
+    --text:#131920; --text-2:#48545f; --text-3:#77838f;
+    --rule:#d6dee5; --rule-2:#b6c2cc;
+    --accent:#0f6d8c; --accent-soft:#dfeef4; --accent-line:#9dc7d6;
+    --stop:#a5231d; --stop-soft:#f7e3e1;
+    --go:#1c6b4b; --go-soft:#dff0e7;
+    --zone-out:#8a6828; --zone-out-bg:#f9f4e9;
+    --display:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+    --body:"IBM Plex Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#0d1218; --surface:#151d25; --surface-2:#1b242d;
+      --text:#e5ebf1; --text-2:#a4b0bc; --text-3:#7a8794;
+      --rule:#29333d; --rule-2:#3c4854;
+      --accent:#4fbcda; --accent-soft:#10303b; --accent-line:#2c6d81;
+      --stop:#f0877e; --stop-soft:#3a1a18;
+      --go:#6fc79c; --go-soft:#123028;
+      --zone-out:#cfae74; --zone-out-bg:#2b2415;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d1218; --surface:#151d25; --surface-2:#1b242d;
+    --text:#e5ebf1; --text-2:#a4b0bc; --text-3:#7a8794;
+    --rule:#29333d; --rule-2:#3c4854;
+    --accent:#4fbcda; --accent-soft:#10303b; --accent-line:#2c6d81;
+    --stop:#f0877e; --stop-soft:#3a1a18;
+    --go:#6fc79c; --go-soft:#123028;
+    --zone-out:#cfae74; --zone-out-bg:#2b2415;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--body); font-size: 15px; line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 26px 88px; }
+
+  .masthead { border-bottom: 2px solid var(--text); padding: 52px 0 22px; margin-bottom: 16px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 16px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(28px, 4.4vw, 42px); line-height: 1.3;
+    margin: 0 0 14px; text-wrap: balance;
+  }
+  .standfirst { font-size: 16px; color: var(--text-2); max-width: 58ch; margin: 0; }
+
+  .q {
+    border-bottom: 1px solid var(--rule);
+    padding: 34px 0 32px;
+  }
+  .q:last-of-type { border-bottom: none; }
+
+  .q-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .q-n { font-family: var(--mono); font-size: 12px; color: var(--accent); flex: none; }
+  h2 {
+    font-family: var(--display); font-weight: 600; font-size: 24px;
+    line-height: 1.4; margin: 0; letter-spacing: .015em;
+  }
+
+  .verdict {
+    display: inline-flex; align-items: baseline; gap: 10px;
+    font-size: 17px; font-weight: 600;
+    padding: 9px 16px; border-radius: 3px; margin-bottom: 16px;
+  }
+  .verdict .mark { font-family: var(--mono); font-size: 15px; }
+  .v-stop { color: var(--stop); background: var(--stop-soft); }
+  .v-go   { color: var(--go);   background: var(--go-soft); }
+
+  p { margin: 0 0 14px; max-width: 66ch; }
+  p:last-child { margin-bottom: 0; }
+  .q p strong { font-weight: 600; }
+
+  code {
+    font-family: var(--mono); font-size: .87em;
+    background: var(--surface-2); border: 1px solid var(--rule);
+    border-radius: 2px; padding: .1em .38em; word-break: break-all;
+  }
+
+  .fix {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    padding: 16px 20px; margin-top: 18px;
+  }
+  .fix h3 {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 500;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 10px;
+  }
+  .fix ul { margin: 0; padding-left: 1.15em; font-size: 14.5px; }
+  .fix li { margin-bottom: 6px; }
+  .fix li:last-child { margin-bottom: 0; }
+  .fix li b { font-weight: 600; }
+
+  .src {
+    font-family: var(--mono); font-size: 11px; color: var(--text-3);
+    margin-top: 12px;
+  }
+
+  .caution {
+    background: var(--stop-soft); border-left: 3px solid var(--stop);
+    padding: 14px 18px; margin-top: 18px; font-size: 14.5px;
+  }
+  .caution b { color: var(--stop); font-weight: 600; }
+  .caution p { margin: 0; max-width: none; }
+
+  figure { margin: 20px 0 0; }
+  .diagram { background: var(--surface); border: 1px solid var(--rule); padding: 16px 14px 10px; }
+  .diagram svg { display: block; width: 100%; height: auto; }
+
+  .closing {
+    margin-top: 34px; padding-top: 22px; border-top: 2px solid var(--text);
+  }
+  .foot { font-size: 12.5px; color: var(--text-3); margin: 0; max-width: 70ch; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 18px 64px; }
+    .verdict { font-size: 15.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">HH経営診断アプリ ／ AWS 閉域移行</p>
+    <h1>閉域移行リスク台帳</h1>
+    <p class="standfirst">機密データを投入したうえで閉域環境に置いたとき、ライブ検索・LLM・外部データ API がそれぞれどうなるか。</p>
+  </header>
+
+  <!-- ============ 1 ============ -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-n">01</span>
+      <h2>ライブ検索</h2>
+    </div>
+    <div class="verdict v-stop"><span class="mark">✕</span>落とす</div>
+
+    <p><strong>閉域だから落とすのではなく、これだけデータの向きが逆だから落とします。</strong>他の機能は「外→内」なのでゾーンを分ければ解決しますが、ウェブ検索は「内→外」──ユーザーが打った質問文がそのまま DuckDuckGo へ飛びます。経営会議で未公表の数値や固有名詞を含む質問を打った瞬間に外部送信され、ネットワークをどう組んでも防げません。</p>
+
+    <p>幸い改修は数行です。<code>web_search_toggle</code> は既に <code>value=False</code> で既定 OFF、呼び出しも <code>if use_web:</code> で完全に囲われているため、切ってもアプリは壊れません。</p>
+
+    <p><strong>失うのは「任意のクエリで今この瞬間を引く」機能だけ。</strong>ニュース見出しと本文抜粋は <code>news_rss</code> を日次収集しているので閉域でも残ります。</p>
+
+    <div class="fix">
+      <h3>対処</h3>
+      <ul>
+        <li><b>既定 OFF → 設定で強制 OFF・トグル非表示</b>に変える</li>
+        <li>代替は事前収集した公開情報の社内 RAG 検索（<code>data_external/public_sources</code> が既にある）</li>
+      </ul>
+    </div>
+    <p class="src">app.py:3605 ／ knowledge_rag.py:2814, :3143</p>
+  </div>
+
+  <!-- ============ 2 ============ -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-n">02</span>
+      <h2>LLM 機能</h2>
+    </div>
+    <div class="verdict v-go"><span class="mark">○</span>閉域のまま使える</div>
+
+    <p>Bedrock の <strong>Interface VPC エンドポイント（PrivateLink）</strong>を使えば、インターネットに一切出ずに AWS 網内で完結します。閉域環境での標準解です。</p>
+
+    <p>現在の接続先 <code>bedrock-mantle.ap-northeast-1.api.aws/anthropic</code> は確かに Bedrock です（<code>ANTHROPIC_API_KEY</code> は <code>ABSK…</code> で始まり、デコードすると <code>BedrockAPIKey-…-at-&lt;アカウントID&gt;</code>）。ただし<strong>標準の <code>bedrock-runtime</code> エンドポイントではなく Anthropic 互換ゲートウェイ</strong>で、PrivateLink が提供されているのは標準ホスト名のほうです。</p>
+
+    <div class="caution">
+      <p><b>ここだけ先に確認が必要です。</b><code>ai_client.py</code> に「提供状況は<b>契約で変わる</b>」と明記されており、今のゲートウェイは特定契約に紐づいている可能性が高い。自社アカウントの標準 Bedrock（ap-northeast-1）に Opus 4.8 / 4.7 / Haiku 4.5 が無ければ、<b>モデル選定からやり直し</b>になります。</p>
+    </div>
+
+    <div class="fix">
+      <h3>対処</h3>
+      <ul>
+        <li><b>標準 <code>bedrock-runtime</code> ＋ IAM ロール（SigV4）へ寄せる。</b><code>anthropic.Anthropic(api_key, base_url)</code> を <code>AnthropicBedrock()</code> に差し替えるだけ。モデル ID は既に Bedrock 形式なので改修は小さい</li>
+        <li>副次効果として <b>長期有効な API キーが不要</b>になり、CloudTrail に呼び出し履歴が残る（監査要件を満たしやすい）</li>
+        <li>あわせて <code>.env</code> 平文のシークレット一式を Secrets Manager へ</li>
+      </ul>
+    </div>
+    <p class="src">ai_client.py:127, :152, :239</p>
+  </div>
+
+  <!-- ============ 3 ============ -->
+  <div class="q">
+    <div class="q-head">
+      <span class="q-n">03</span>
+      <h2>外部データ API（統計・IR・ニュース・SNS）</h2>
+    </div>
+    <div class="verdict v-go"><span class="mark">○</span>取得ゾーンを分ければ使える</div>
+
+    <p>アプリを閉域に置くことと、データ取得を閉域でやることは別の話です。<strong>取得だけを別ゾーンに追い出せば両立します。</strong></p>
+
+    <p>そして現状のコードは既にその形に近い。<code>news_feed.py</code> の冒頭に「取得はパイプライン側で行い、ここは保存済み JSON を読むだけ。<strong>画面からは通信しない</strong>」と明記され、実際に collectors → <code>runtime_data</code> の JSON → UI が読むだけになっています。<code>ENABLE_PIPELINE_REFRESH</code> という取得の ON/OFF スイッチも既にある。<strong>これが移行コストを大きく下げます。</strong></p>
+
+    <figure>
+      <div class="diagram">
+        <svg viewBox="0 0 900 252" role="img" aria-labelledby="dt dd1">
+          <title id="dt">収集ゾーンと閉域VPCの分離構成</title>
+          <desc id="dd1">収集ゾーンが外部APIから取得してS3へ書き込み、閉域VPCはS3から読み取るだけの一方通行構成。</desc>
+          <defs>
+            <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"></path>
+            </marker>
+            <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--zone-out)"></path>
+            </marker>
+          </defs>
+
+          <line x1="400" y1="10" x2="400" y2="206" stroke="var(--accent-line)" stroke-width="1.4" stroke-dasharray="7 6"></line>
+          <text x="400" y="234" text-anchor="middle" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--accent)">機密データはこの境界を左へ越えない</text>
+
+          <!-- left zone -->
+          <rect x="16" y="44" width="250" height="150" rx="3" fill="var(--zone-out-bg)" stroke="var(--zone-out)" stroke-width="1.4" stroke-dasharray="5 4"></rect>
+          <text x="32" y="68" font-family="Zen Old Mincho, serif" font-size="14.5" font-weight="600" fill="var(--text)">収集ゾーン</text>
+          <text x="32" y="84" font-family="IBM Plex Sans JP, sans-serif" font-size="10" fill="var(--text-3)">別VPC・機密データなし</text>
+          <text x="32" y="110" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--text-2)">・EventBridge Scheduler</text>
+          <text x="32" y="131" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--text-2)">・ECS Fargate ＝ collectors</text>
+          <text x="32" y="152" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--text-2)">・NAT ＋ 出口プロキシ</text>
+          <line x1="141" y1="160" x2="141" y2="174" stroke="var(--zone-out)" stroke-width="1.3" marker-start="url(#b)" marker-end="url(#b)"></line>
+          <text x="32" y="186" font-family="IBM Plex Sans JP, sans-serif" font-size="11" fill="var(--zone-out)">外部API・ニュースRSS・SNS</text>
+
+          <!-- arrows + S3 -->
+          <line x1="272" y1="122" x2="330" y2="122" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#a)"></line>
+          <text x="301" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--accent)">書込のみ</text>
+          <rect x="336" y="94" width="128" height="56" rx="3" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.5"></rect>
+          <text x="400" y="118" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" font-weight="500" fill="var(--text)">S3</text>
+          <text x="400" y="134" text-anchor="middle" font-family="IBM Plex Sans JP, sans-serif" font-size="9.5" fill="var(--text-3)">唯一の受け渡し点</text>
+          <line x1="470" y1="122" x2="528" y2="122" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#a)"></line>
+          <text x="499" y="112" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" fill="var(--accent)">読取のみ</text>
+
+          <!-- right zone -->
+          <rect x="534" y="44" width="350" height="150" rx="3" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"></rect>
+          <text x="550" y="68" font-family="Zen Old Mincho, serif" font-size="14.5" font-weight="600" fill="var(--text)">閉域 VPC</text>
+          <text x="550" y="84" font-family="IBM Plex Sans JP, sans-serif" font-size="10" fill="var(--text-3)">機密データあり・インターネット出口なし</text>
+          <text x="550" y="110" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--text-2)">・EFS ← aws s3 sync（サイドカー）</text>
+          <text x="550" y="131" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--text-2)">・Gradio アプリ ＝ 読むだけ</text>
+          <text x="550" y="152" font-family="IBM Plex Sans JP, sans-serif" font-size="11.5" fill="var(--text-2)">・Bedrock VPC エンドポイント</text>
+          <text x="550" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--text-3)">ENABLE_PIPELINE_REFRESH=false</text>
+        </svg>
+      </div>
+    </figure>
+
+    <div class="fix">
+      <h3>対処</h3>
+      <ul>
+        <li><b>収集を EventBridge Scheduler ＋ ECS Fargate へ切り出す。</b>周期は <code>refresh_policy.py</code> に既に定義済み（6時間／日次／週次／月次）なので、そのまま写せる</li>
+        <li><b>S3 を一方通行にする。</b>バケットポリシーで収集側は <code>PutObject</code> のみ、閉域側は <code>GetObject</code> のみ。機密データが外へ出る経路が構造的に存在しないので、監査で説明しやすい</li>
+        <li><b>アプリ側は EFS ＋ 同期サイドカー。</b><code>MONITORING_TARGET_DIR</code> の向き先を変えるだけで、<b>アプリ本体のコード変更はほぼゼロ</b></li>
+        <li>S3 の手前に検疫層（スキーマ検証・サニタイズ）を置く。外部 RSS 本文が LLM プロンプトに入るため、機密投入後はプロンプトインジェクション対策としても要る</li>
+      </ul>
+    </div>
+    <p class="src">app.py:58 ／ refresh_policy.py:16 ／ settings.py:241, :243</p>
+  </div>
+
+  <div class="closing">
+    <p class="foot">2026-09-04 時点の <code>gradio_app_0901</code> の実装を読んで作成。行番号は同時点のもので、コード変更に伴いずれる。なお閉域では pip 不通・Gradio テレメトリ・埋め込みモデルの初回ダウンロード失敗など定型の詰まりが別途あるが、いずれも対処は既知のため本書では省いた。</p>
+  </div>
+
+</div>
+</body>
+</html>
