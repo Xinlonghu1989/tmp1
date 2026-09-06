@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ウェブ検索機能 ― 構成と情報流出ポイント</title>
+<style>
+  :root{--ink:#1c1c1e;--muted:#5b5f66;--line:#e3e5e8;--soft:#fafbfc;--brand:#6b1f34;--brand-soft:#fbf3f5;--alarm:#a3232f;--alarm-bg:#fdeff0;--ok:#1f7a4d;--ok-bg:#eef7f1;--warn:#8a6b1f;--warn-bg:#fdf6e7}
+  body{margin:0;background:#fff;color:var(--ink);font:15px/1.7 -apple-system,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+  main{max-width:1040px;margin:0 auto;padding:40px 28px 64px}
+  h1{font-size:24px;margin:0 0 4px;color:var(--brand)}
+  .meta{color:var(--muted);font-size:13px;margin-bottom:28px}
+  h2{font-size:18px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--brand)}
+  .lead{background:var(--brand-soft);border-left:4px solid var(--brand);padding:14px 18px;border-radius:6px;margin:0 0 24px}
+  .lead p{margin:6px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 12px;vertical-align:top;text-align:left}
+  th{background:var(--soft);font-weight:600;white-space:nowrap}
+  .badge{display:inline-block;min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:11px;background:var(--alarm);color:#fff;font-weight:700;font-size:13px;margin-right:6px}
+  .badge.grey{background:#8a8f97}
+  .lv{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:600}
+  .lv.high{background:var(--alarm-bg);color:var(--alarm)}
+  .lv.mid{background:var(--warn-bg);color:var(--warn)}
+  .lv.low{background:var(--ok-bg);color:var(--ok)}
+  figure{margin:0 0 8px;border:1px solid var(--line);border-radius:8px;padding:12px;background:#fff;overflow-x:auto}
+  figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+  ul{padding-left:22px}
+  li{margin:4px 0}
+  .plan td:first-child{white-space:nowrap;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>ウェブ検索機能 ― 構成と情報流出ポイント</h1>
+<div class="meta">AI経営診断アプリ／2026-09-06／対象：経営AI相談の「🌐 ウェブ検索」トグル（他の機能はウェブ検索を使わない）</div>
+
+<div class="lead">
+  <p><b>結論</b>　PoCではウェブ検索を残し、既定で有効にする。セキュア公開では <code>WEB_SEARCH_ENABLED=false</code> を明示して無効にする。</p>
+  <p>有効時に外へ出るのは<b>今回の利用者入力そのもの（最大300字）</b>と、<b>取得先サイトに残るアプリの識別子・接続元IP</b>。社内資料本文、添付資料、会話履歴、LLMの解釈語は検索語へ追加しない。</p>
+  <p>サーバ側でも設定を確認するため、セキュア公開で無効にした後は画面値や直接API呼び出しで検索を強制することはできない。無効時はトグルを表示せず、検索・本文取得を実行しない。</p>
+</div>
+
+<h2>1. 構成（ウェブ検索ONで質問を送ったとき）</h2>
+
+<figure>
+<svg viewBox="0 0 980 420" width="980" height="420" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system,'Hiragino Sans','Yu Gothic',sans-serif" font-size="13">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#5b5f66"/></marker>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#a3232f"/></marker>
+  </defs>
+  <!-- 境界 -->
+  <rect x="14" y="14" width="560" height="392" rx="10" fill="#fafbfc" stroke="#e3e5e8"/>
+  <text x="28" y="36" fill="#5b5f66" font-size="12">アプリ内（EC2）</text>
+  <rect x="600" y="14" width="366" height="392" rx="10" fill="#fdeff0" stroke="#f1c5c9"/>
+  <text x="614" y="36" fill="#a3232f" font-size="12">外部（インターネット）</text>
+
+  <!-- 利用者 -->
+  <rect x="40" y="70" width="140" height="56" rx="8" fill="#fff" stroke="#1c1c1e"/>
+  <text x="110" y="94" text-anchor="middle" font-weight="600">利用者の質問</text>
+  <text x="110" y="112" text-anchor="middle" fill="#5b5f66" font-size="12">経営AI相談</text>
+
+  <!-- 検索語 -->
+  <rect x="220" y="70" width="150" height="56" rx="8" fill="#fff" stroke="#1c1c1e"/>
+  <text x="295" y="94" text-anchor="middle" font-weight="600">検索語の組み立て</text>
+  <text x="295" y="112" text-anchor="middle" fill="#5b5f66" font-size="12">質問文そのまま・最大300字</text>
+  <line x1="180" y1="98" x2="218" y2="98" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- DuckDuckGo -->
+  <rect x="640" y="70" width="180" height="56" rx="8" fill="#fff" stroke="#a3232f" stroke-width="1.5"/>
+  <text x="730" y="94" text-anchor="middle" font-weight="600">検索エンジン</text>
+  <text x="730" y="112" text-anchor="middle" fill="#5b5f66" font-size="12">DuckDuckGo（無認証）</text>
+  <line x1="370" y1="90" x2="638" y2="90" stroke="#a3232f" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="504" y="82" text-anchor="middle" fill="#a3232f" font-size="12" font-weight="600">質問文を送信</text>
+  <line x1="638" y1="108" x2="372" y2="108" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="504" y="124" text-anchor="middle" fill="#5b5f66" font-size="12">見出し・説明文・URL（最大10件）</text>
+  <circle cx="606" cy="72" r="12" fill="#a3232f"/><text x="606" y="77" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">1</text>
+
+  <!-- 本文取得 -->
+  <rect x="220" y="180" width="150" height="56" rx="8" fill="#fff" stroke="#1c1c1e"/>
+  <text x="295" y="204" text-anchor="middle" font-weight="600">ページ本文の取得</text>
+  <text x="295" y="222" text-anchor="middle" fill="#5b5f66" font-size="12">上位3件・各6,000字</text>
+  <line x1="295" y1="126" x2="295" y2="178" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- 各サイト -->
+  <rect x="640" y="180" width="180" height="56" rx="8" fill="#fff" stroke="#a3232f" stroke-width="1.5"/>
+  <text x="730" y="204" text-anchor="middle" font-weight="600">検索結果の各サイト</text>
+  <text x="730" y="222" text-anchor="middle" fill="#5b5f66" font-size="12">ニュース・企業サイト・個人ブログ</text>
+  <line x1="370" y1="200" x2="638" y2="200" stroke="#a3232f" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="504" y="192" text-anchor="middle" fill="#a3232f" font-size="12" font-weight="600">GET要求（UA・接続元IP）</text>
+  <line x1="638" y1="218" x2="372" y2="218" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="504" y="234" text-anchor="middle" fill="#5b5f66" font-size="12">HTML本文（第三者が書いた内容）</text>
+  <circle cx="606" cy="182" r="12" fill="#a3232f"/><text x="606" y="187" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">2</text>
+
+  <!-- 社内資料 -->
+  <rect x="40" y="290" width="140" height="56" rx="8" fill="#fff" stroke="#1c1c1e"/>
+  <text x="110" y="314" text-anchor="middle" font-weight="600">社内資料の検索</text>
+  <text x="110" y="332" text-anchor="middle" fill="#5b5f66" font-size="12">RAG（アプリ内）</text>
+
+  <!-- 回答生成 -->
+  <rect x="220" y="290" width="150" height="56" rx="8" fill="#fff" stroke="#1c1c1e"/>
+  <text x="295" y="314" text-anchor="middle" font-weight="600">回答生成</text>
+  <text x="295" y="332" text-anchor="middle" fill="#5b5f66" font-size="12">根拠＋外部本文を渡す</text>
+  <line x1="180" y1="318" x2="218" y2="318" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="295" y1="236" x2="295" y2="288" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- Bedrock -->
+  <rect x="640" y="290" width="180" height="56" rx="8" fill="#fff" stroke="#a3232f" stroke-width="1.5"/>
+  <text x="730" y="314" text-anchor="middle" font-weight="600">LLM（Amazon Bedrock）</text>
+  <text x="730" y="332" text-anchor="middle" fill="#5b5f66" font-size="12">Claude</text>
+  <line x1="370" y1="310" x2="638" y2="310" stroke="#a3232f" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="504" y="302" text-anchor="middle" fill="#a3232f" font-size="12" font-weight="600">質問・社内資料抜粋・外部本文</text>
+  <line x1="638" y1="328" x2="372" y2="328" stroke="#5b5f66" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="504" y="344" text-anchor="middle" fill="#5b5f66" font-size="12">回答文</text>
+  <circle cx="606" cy="292" r="12" fill="#a3232f"/><text x="606" y="297" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">3</text>
+
+  <!-- ログ -->
+  <rect x="420" y="360" width="130" height="36" rx="8" fill="#fff" stroke="#8a8f97" stroke-dasharray="4 3"/>
+  <text x="485" y="383" text-anchor="middle" fill="#5b5f66" font-size="12">サーバ内ログ</text>
+  <circle cx="420" cy="362" r="12" fill="#8a8f97"/><text x="420" y="367" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">4</text>
+</svg>
+<figcaption>赤い矢印が外部へ出る通信。①②がウェブ検索固有の流出点、③はウェブ検索OFFでも使う既存の経路（外部本文の分だけ増える）。</figcaption>
+</figure>
+
+<h2>2. 段階ごとに出る情報</h2>
+<table>
+  <tr><th>#</th><th>段階</th><th>宛先</th><th>出る情報</th><th>重み</th></tr>
+  <tr><td><span class="badge">1</span></td><td>検索</td><td>DuckDuckGo（契約なし・無認証）</td><td><b>質問文そのまま（最大300字）</b>。案件名・未公表の数値・人名を書けば、それが出る。伏字化なし</td><td><span class="lv high">高</span></td></tr>
+  <tr><td><span class="badge">2</span></td><td>本文取得</td><td>検索上位3件のサイト</td><td>送信データは無い（GETのみ）。ただし相手のアクセスログに <b>User-Agent「HHGroupInsightBot/1.0」・接続元IP・取りに行ったURL</b>が残る＝「いま何を調べているか」の材料</td><td><span class="lv mid">中</span></td></tr>
+  <tr><td><span class="badge">3</span></td><td>回答生成</td><td>Amazon Bedrock（Claude）</td><td>質問文・社内資料の抜粋・監視指標に加えて<b>外部ページの本文</b>。Bedrockはウェブ検索OFFでも使う経路。第三者の本文がプロンプトに入るため誤誘導の余地がある（指示文で抑止、構造的な遮断ではない）</td><td><span class="lv mid">中</span></td></tr>
+  <tr><td><span class="badge grey">4</span></td><td>ログ</td><td>サーバ内 <code>app.jsonl</code>・AI入出力ログ</td><td>検索語の先頭80字、取得URL、<code>used_web</code> フラグ。AI入出力ログは保存前に伏字化する。外部へは出ない</td><td><span class="lv low">低</span></td></tr>
+</table>
+<p style="margin-top:10px">社内資料の本文が出るのは③（Bedrock）だけで、これはウェブ検索の有無に関係なく必要な経路。<b>ウェブ検索を止めれば①②は経路ごと消える。</b></p>
+
+<h2>3. 移行方針</h2>
+<table class="plan">
+  <tr><th>段階</th><th>ウェブ検索</th><th>備考</th></tr>
+  <tr><td>PoC（現状）</td><td><b>有効（既定ON）</b></td><td><code>WEB_SEARCH_ENABLED=true</code>。利用者が明示してONにした入力文だけを検索する</td></tr>
+  <tr><td>セキュア公開</td><td>無効</td><td><code>WEB_SEARCH_ENABLED=false</code>。サーバ側で強制OFF・トグル非表示。失うのは当日のニュース等の即時情報だけ（株価・為替・金利・気象は外部データパイプラインが日次で取得済み）</td></tr>
+</table>
+<p>実装済みの制御：<code>.env</code> の <code>WEB_SEARCH_ENABLED</code> を <code>knowledge_rag.answer_markdown</code> で評価し、偽なら検索も本文取得も行わない。PoCの既定は真で、<code>app.py</code> とホーム画面は同じ設定でトグルを表示する。検索語の生成では利用者の現在の入力だけを使う。</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>変更点まとめ ― 管理機能・データパイプライン・ログ管理</title>
+<style>
+  :root{--ink:#1c1c1e;--muted:#5b5f66;--line:#e3e5e8;--soft:#fafbfc;--brand:#6b1f34;--brand-soft:#fbf3f5;--ok:#1f7a4d;--ok-bg:#eef7f1}
+  body{margin:0;background:#fff;color:var(--ink);font:15px/1.7 -apple-system,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+  main{max-width:1040px;margin:0 auto;padding:40px 28px 64px}
+  h1{font-size:24px;margin:0 0 4px;color:var(--brand)}
+  .meta{color:var(--muted);font-size:13px;margin-bottom:28px}
+  h2{font-size:18px;margin:36px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--brand)}
+  .lead{background:var(--brand-soft);border-left:4px solid var(--brand);padding:14px 18px;border-radius:6px;margin:0 0 24px}
+  .lead ul{margin:6px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 12px;vertical-align:top;text-align:left}
+  th{background:var(--soft);font-weight:600;white-space:nowrap}
+  td.k{white-space:nowrap;font-weight:600}
+  .up{color:var(--ok);font-weight:600}
+  ul{padding-left:22px}
+  li{margin:4px 0}
+  code{font-size:13px;background:var(--soft);padding:1px 5px;border-radius:4px}
+  .links{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<h1>変更点まとめ ― 管理機能・データパイプライン・ログ管理</h1>
+<div class="meta">AI経営診断アプリ／2026-09-04〜09-06 の改修／引き渡し前の運用機能整備</div>
+
+<div class="lead">
+  <b>ポイント</b>
+  <ul>
+    <li>データの取り込み口を<b>コマンド1本＋管理画面の同じ関数</b>に統一し、<b>誰がいつ何を更新したか</b>が更新ログに残る。</li>
+    <li>AIの入出力ログは<b>伏字化してから保存</b>（原文は残さない）。エラーは画面・ログ・コンソールの三重で残す。</li>
+    <li>権限を<b>1人1行の台帳（3層）</b>にし、付与は明示のみ。CSVとコマンドで一括登録できる。</li>
+    <li>検索基盤を差し替え、<b>検索精度を計測で確認</b>（Recall@8 66.7→71.7%、総会QAの別回次一致 55.3→78.9%）。資料台帳で「何の資料でいつの期か」を持つ。</li>
+    <li>展開してそのまま起動できる（索引とモデルを同梱）。命名規則の無い新規資料の投入試験を自動テストに追加。</li>
+  </ul>
+</div>
+
+<h2>1. 変更一覧</h2>
+<table>
+  <tr><th>領域</th><th>変更前</th><th>変更後</th></tr>
+  <tr><td class="k">データ取り込み</td><td>内部資料はコマンド、総会QA資料は画面ボタンのみ</td><td><code>pipeline.py update --internal / --external / --agm</code> と管理画面「最新データを反映」が同じ関数。差分だけ反映（1件の追加は数秒）</td></tr>
+  <tr><td class="k">総会QA資料</td><td>直近の期だけ</td><td><code>株主QAデータ/株主総会Q&amp;A資料_&lt;期&gt;期/&lt;コア&gt;/</code> を全期×全コアで差分同期。期フォルダを足すだけで増える</td></tr>
+  <tr><td class="k">総会QA PDF取込</td><td>PDFは総会QAの取込対象外</td><td>文字情報を持つPDFをページ順に抽出し、既存のQ&amp;A構造化へ投入。画像だけ・破損PDFは解析対象外として取込結果に明示。総会QAではPPTXを対象外とする</td></tr>
+  <tr><td class="k">更新ログ</td><td>なし</td><td><code>runtime_data/ops_log.db</code>。日時・実行者（画面ユーザー／<code>cli:</code>／<code>system:auto</code>）・対象・結果</td></tr>
+  <tr><td class="k">AI入出力ログ</td><td>原文を保存</td><td>保存前に伏字化（軽量モデル、後備は正規表現）。閲覧は本人とシステム管理者のみ</td></tr>
+  <tr><td class="k">エラー</td><td>数秒で消えるトースト。握り潰した例外は例外名だけ</td><td>×を押すまで消えない通知＋管理画面「エラー管理」（期間集計・トレースバック）＋標準エラー出力</td></tr>
+  <tr><td class="k">管理画面</td><td>5画面が横並び</td><td>ハブ（経営診断／総会QAアプリの2タブ）→ データ管理・ユーザー権限管理・AI入出力ログ・エラー管理・進捗</td></tr>
+  <tr><td class="k">権限</td><td>役割のみ</td><td>3層：システム管理者／経営診断の付与（データ群＝フォルダ、機能群＝事業）／総会QAの役割と担当BU。<code>manage_users.py</code> でCSV往復</td></tr>
+  <tr><td class="k">検索索引</td><td>静的埋め込みモデル。期の判断は題名の正規表現</td><td><code>cl-nagoya/ruri-v3-30m</code>。資料台帳 <code>rag_files</code>（種別・対象期・事業・品質）。根拠が弱いときは回答にも伝える</td></tr>
+  <tr><td class="k">索引の保護</td><td>モデル変更後の最初の検索で全件再計算（数十分停止）</td><td>検索中は作り直さない（<code>rebuild</code> でのみ）。書き換え中も旧索引で応答（SQLite WAL）</td></tr>
+  <tr><td class="k">旧実装</td><td>第1世代の総会QA実装・死蔵CSSが残存</td><td>撤去</td></tr>
+  <tr><td class="k">AI入出力ログの操作性</td><td>300件の明細と3つの集計グラフを同時に表示</td><td>期間・機能・利用者・評価で絞り込み、明細は既定30件（30／100／300件から選択）。利用者別・クロス集計は必要時だけ表示</td></tr>
+  <tr><td class="k">権限変更の確認</td><td>保存前に実効範囲を確認しにくい</td><td>保存後の実効権限を常時表示。全選択／クリアを追加し、システム管理者の新規付与には確認チェックを必須化</td></tr>
+  <tr><td class="k">PowerPoint資料</td><td>索引化は可能だが、対話添付で本文抽出・Office検証が不足</td><td><code>.pptx</code> をスライド単位で抽出し、添付・データパイプラインともに対応。展開サイズと本文XMLサイズを検証</td></tr>
+  <tr><td class="k">AI経営ナビの計画資料指定</td><td>機能ごとに自動特定・サンプル・アップロードの配置が異なる</td><td>前提洗い直しは確定版フォルダのリスト（最新を初期選択）、計画点検はドラフトサンプル／アップロード、グループ横断は複数資料の横断比較、乖離検証は確定版リスト／アップロードに統一。共通の資料選択レイアウトへ再設計</td></tr>
+  <tr><td class="k">計画サポートUIの最終整理</td><td>資料名を確認しづらい選択幅。前提洗い直しに旧来の確定版テーブルとプレビュー導線が残っていた</td><td>資料選択リストの表示幅を従来の2倍（920px、狭い画面では全幅）に拡張。前提洗い直しは選択リストのファイルだけを査定対象とし、旧テーブル・プレビュー・代理コンポーネントを撤去</td></tr>
+</table>
+
+<h2>2. 検証</h2>
+<table>
+  <tr><th>項目</th><th>結果</th></tr>
+  <tr><td class="k">自動テスト</td><td>最終確認時に実施（AI入出力ログの絞り込み・権限付与確認・PowerPoint添付／検証を含む）</td></tr>
+  <tr><td class="k">検索精度（168問）</td><td>Recall@8 <span class="up">66.7 → 71.7%</span>、内部資料層 <span class="up">87.5 → 95.0%</span>、総会QA別回次一致 <span class="up">55.3 → 78.9%</span></td></tr>
+  <tr><td class="k">回答品質（LLM、6ケース）</td><td>中期経営計画の目標を節名つきで引用。無関係な質問（天気）では社内資料を引用しない</td></tr>
+  <tr><td class="k">パイプライン</td><td>フォルダ追加→update→削除→update で索引・台帳・管理画面が追随。テストデータでの一巡（投入→反映→各機能→撤去→復元）も実施</td></tr>
+  <tr><td class="k">展開</td><td>別パス・オフラインで起動：ダウンロードも作り直しも無し。ウォームアップ9秒、検索0.2〜0.3秒</td></tr>
+</table>
+
+<h2>3. 運用で覚えること</h2>
+<ul>
+  <li><b>日次</b>：<code>python3 pipeline.py update</code>（cron）。失敗は終了コード1。</li>
+  <li><b>資料を足す</b>：<code>data_internal/&lt;分類&gt;/</code> に置いて <code>update --internal</code>（または管理画面）。<code>pipeline.py status</code> の <code>?</code>（要確認・失敗）を確認。</li>
+  <li><b>利用者を足す</b>：管理画面のユーザー権限管理、または <code>manage_users.py import users.csv</code>。</li>
+  <li><b>展開</b>：配布zipに <code>runtime_data/rag/</code>（索引＋モデル、約520MB）を含める。zipを固めるときはアプリを止める。</li>
+  <li><b>モデルや抽出設定を変えたら</b>：<code>python3 pipeline.py rebuild</code>（EC2で30〜60分）。実行するまでは語彙検索だけで応答。</li>
+</ul>
+
+<p class="links">詳細：<a href="../docs/修正案_運用基盤_パイプライン統合とログ管理_20260904.md">docs/修正案_運用基盤_パイプライン統合とログ管理_20260904.md</a>（設計・実施記録）／
+<a href="../docs/システム引き継ぎ資料.md">docs/システム引き継ぎ資料.md</a>（開発者向け全体資料）／
+<a href="開発者マニュアル.html">開発者マニュアル.html</a>／
+<a href="ウェブ検索機能_構成と情報流出ポイント.html">ウェブ検索機能_構成と情報流出ポイント.html</a></p>
+<h2>4. 最終公開前のセキュリティ整備（2026-09-06）</h2>
+<table>
+  <tr><th>対象</th><th>変更</th><th>確認点</th></tr>
+  <tr><td>内部資料</td><td><code>data_internal/</code> をGradioの静的配信対象から除外</td><td>利用者ごとの <code>allowed_groups</code> を通るRAGの抜粋だけを表示。原本を直接URLで取得できない</td></tr>
+  <tr><td>ウェブ検索</td><td>PoCでは既定ONを維持。<code>WEB_SEARCH_ENABLED=false</code> でセキュア公開時にサーバ側から強制停止</td><td>無効化後は画面の値や直接呼び出しだけでは外部検索・本文取得を実行しない</td></tr>
+  <tr><td>検索語</td><td>外部へ送る検索語を今回の利用者入力に限定</td><td>会話履歴、添付資料、LLMの解釈語を検索語へ補完しない</td></tr>
+  <tr><td>利用者資料</td><td><code>利用者マニュアル.html</code> を唯一の配布・画面リンク先に統一</td><td>旧 <code>操作マニュアル_業務担当者向け.html</code> は撤去し、実装との整合テスト対象を一本化</td></tr>
+</table>
+</main>
+</body>
+</html>

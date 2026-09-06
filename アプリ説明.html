@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HHグループ AI経営診断アプリ 説明資料</title>
+<style>
+  :root{
+    --ink:#1c1c1e; --muted:#5b5f66; --faint:#8a8f97;
+    --line:#e3e5e8; --bg:#fff; --soft:#fafbfc;
+    --brand:#6b1f34; --brand-soft:#fbf3f5;
+    --ok:#1f7a4d; --ok-bg:#eef7f1;
+    --warn:#8a6b1f; --warn-bg:#fdf6e7;
+    --alarm:#a3232f; --alarm-bg:#fdeff0;
+    --ext:#14543b; --ext-bg:#eef6f2;
+    --int:#6b1f34; --int-bg:#fbf3f5;
+    --rt:#3b4a63; --rt-bg:#eef1f6;
+    --mono:"SF Mono",Menlo,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,system-ui,sans-serif;
+    font-size:14px;line-height:1.85;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:44px 28px 96px}
+  header.cover{border-bottom:3px solid var(--brand);padding-bottom:22px;margin-bottom:0}
+  header.cover .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--brand);font-weight:700}
+  header.cover h1{font-size:27px;margin:8px 0 6px;letter-spacing:.01em}
+  header.cover p{margin:0;color:var(--muted);font-size:13px}
+
+  /* --- タブ（JavaScript不要。ラジオボタンで切り替える） --- */
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin:0 0 8px}
+  .tabs label{padding:14px 24px;font-size:14px;font-weight:700;color:var(--faint);
+    cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;user-select:none}
+  .tabs label:hover{color:var(--brand)}
+  input[name=tab]{position:absolute;opacity:0;pointer-events:none}
+  .panel{display:none}
+  #t1:checked~.tabs label[for=t1],
+  #t2:checked~.tabs label[for=t2]{color:var(--brand);border-bottom-color:var(--brand)}
+  #t1:checked~#p1,#t2:checked~#p2{display:block}
+
+  h2{font-size:20px;margin:48px 0 6px;padding-top:22px;border-top:1px solid var(--line)}
+  h2 .num{display:inline-block;min-width:30px;height:30px;line-height:30px;text-align:center;
+    background:var(--brand);color:#fff;border-radius:8px;font-size:14px;margin-right:10px}
+  h3{font-size:15.5px;margin:30px 0 8px;color:var(--brand)}
+  h4{font-size:14px;margin:20px 0 6px}
+  p{margin:8px 0}
+  .lead{color:var(--muted);margin-bottom:18px}
+  ol,ul{margin:8px 0 8px 1.4em;padding:0}
+  li{margin:5px 0}
+  ol.steps{counter-reset:s;list-style:none;margin-left:0}
+  ol.steps>li{counter-increment:s;position:relative;padding-left:38px;margin:11px 0}
+  ol.steps>li::before{content:counter(s);position:absolute;left:0;top:1px;
+    width:25px;height:25px;line-height:25px;text-align:center;border-radius:50%;
+    background:var(--brand-soft);color:var(--brand);font-weight:700;font-size:12px}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:700}
+  th.nw,td.nw{white-space:nowrap}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  code{background:var(--soft);border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;font-size:12.5px;font-family:var(--mono)}
+  pre{background:#1c1c1e;color:#e8e8ea;border-radius:9px;padding:15px 18px;margin:14px 0;
+    overflow-x:auto;font-size:12.5px;line-height:1.7;font-family:var(--mono)}
+  pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit;white-space:pre}
+  pre .c{color:#8a9199}
+  pre .k{color:#e2a3ae}
+  .tree{background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:15px 18px;
+    margin:14px 0;font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto;white-space:pre}
+  .tree b{color:var(--brand)}
+  .tree i{color:var(--faint);font-style:normal}
+  .note,.warn,.tip,.rule{border-radius:9px;padding:13px 17px;margin:16px 0;font-size:13px}
+  .note{background:var(--soft);border:1px solid var(--line)}
+  .warn{background:var(--alarm-bg);border:1px solid #f0cdd1}
+  .tip{background:var(--ok-bg);border:1px solid #cfe6da}
+  .rule{background:var(--warn-bg);border:1px solid #ecdcb4}
+  .note b,.warn b,.tip b,.rule b{display:block;margin-bottom:3px}
+  .toc{background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:18px 24px;margin:22px 0 8px}
+  .toc h2{border:0;margin:0 0 8px;padding:0;font-size:15px}
+  .toc ol{margin-left:1.2em;columns:2;column-gap:34px}
+  .toc a{color:var(--ink);text-decoration:none}
+  .toc a:hover{color:var(--brand);text-decoration:underline}
+  .scope{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+  .scope span{font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--muted)}
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .ba>div{border:1px solid var(--line);border-radius:9px;padding:14px 17px;font-size:13px}
+  .ba .before{background:var(--alarm-bg);border-color:#f0cdd1}
+  .ba .after{background:var(--ok-bg);border-color:#cfe6da}
+  .ba b{display:block;margin-bottom:5px;font-size:12px;letter-spacing:.06em}
+  .pill{display:inline-block;font-size:11.5px;border-radius:999px;padding:2px 10px;
+    font-weight:700;white-space:nowrap}
+  .pill.on{background:var(--ok-bg);color:var(--ok);border:1px solid #cfe6da}
+  .pill.off{background:var(--soft);color:var(--faint);border:1px solid var(--line)}
+  .pill.now{background:var(--brand);color:#fff;border:1px solid var(--brand)}
+  table.models{table-layout:fixed}
+  table.models code{font-size:11.5px;word-break:break-all;display:inline-block}
+  .tier{display:inline-block;margin-top:5px;font-size:11.5px;color:var(--faint)}
+  figure{margin:22px 0}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:12px;color:var(--faint);margin-top:7px;text-align:center}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:8px 0 0;justify-content:center}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+  .tsw{fill:#fff;font-size:12px;font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+  .tsg{fill:#1c1c1e;font-size:12px;font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+  .tsm{fill:#5b5f66;font-size:11px;font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+  footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);
+    color:var(--faint);font-size:12px}
+  @media print{
+    .wrap{max-width:none;padding:0}
+    .tabs{display:none}
+    .panel{display:block !important}
+    h2{page-break-before:always;border-top:0}
+    h2:first-of-type{page-break-before:avoid}
+    .toc{page-break-after:always}
+    pre{background:#f4f4f5;color:#1c1c1e;border:1px solid var(--line)}
+    pre .c{color:#6b7075} pre .k{color:#6b1f34}
+  }
+  @media (max-width:720px){
+    .ba{grid-template-columns:1fr}
+    .toc ol{columns:1}
+    .tabs label{padding:12px 14px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <div class="eyebrow">HANKYU HANSHIN GROUP</div>
+  <h1>AI経営診断アプリ　説明資料</h1>
+  <p>今回の主要変更点と開発者向けの全体説明／2026年8月16日時点の実装に準拠</p>
+</header>
+
+<input type="radio" name="tab" id="t1" checked>
+<input type="radio" name="tab" id="t2">
+<div class="tabs">
+  <label for="t1">今回の主要変更点</label>
+  <label for="t2">開発者マニュアル</label>
+</div>
+
+<!-- ================================================================ -->
+<!-- タブ1：今回の主要変更点                                          -->
+<!-- ================================================================ -->
+<section class="panel" id="p1">
+
+<p class="lead" style="margin-top:22px">
+今回の改修で、運用に直接効く変更は次の3点です。いずれも
+<strong>「触る場所を1か所に決める」</strong>という同じ考え方に立っています。
+アプリを長く使ううえで、迷ったときにどこを見ればよいかが決まっていることが、
+機能の数より効きます。
+</p>
+
+<table>
+  <tr>
+    <th class="nw">変更点</th><th>何が変わったか</th><th class="nw">触る場所</th>
+  </tr>
+  <tr>
+    <td class="nw"><b>1. APIキーの統一管理</b></td>
+    <td>鍵の置き場が複数に散っていたのを、アプリ直下の <code>.env</code> 1ファイルに集約。
+        参照できるキーの一覧（登録簿）をコード側に持たせ、未設定は起動ログで分かるようにした</td>
+    <td class="nw"><code>.env</code></td>
+  </tr>
+  <tr>
+    <td class="nw"><b>2. データパイプライン</b></td>
+    <td>資料の取り込み口を <code>pipeline.py</code> 1本に統一。フォルダに入れて更新を実行すれば、
+        変わった分だけが検索用DBに反映される。分類フォルダは自由に増やせる</td>
+    <td class="nw"><code>data_internal/</code></td>
+  </tr>
+  <tr>
+    <td class="nw"><b>3. LLMの切り替え</b></td>
+    <td>プロンプトの文面を <code>ai_prompts.py</code> 1ファイルへ集約。使うモデルは
+        <code>.env</code> の1行で切り替わる。モデルごとの作法の差はアプリが自動で吸収する</td>
+    <td class="nw"><code>.env</code></td>
+  </tr>
+</table>
+
+
+<!-- ============================================================ -->
+<h2 id="c1"><span class="num">1</span>APIキー類の統一管理</h2>
+
+<p class="lead">
+LLMのキーも、外部データ提供元（e-Stat・EDINET・J-Quants など）のキーも、
+画面ログインのパスワードも、置き場は <code>.env</code> ただ1つです。
+</p>
+
+<div class="ba">
+  <div class="before">
+    <b>改修前</b>
+    アプリ直下の <code>.env</code>、親フォルダの設定ファイル、単独の鍵ファイル、
+    ソース内の既定値と、鍵が複数箇所に分散していました。
+    どれが使われているのかを追えず、差し替え漏れを招く構成です。
+  </div>
+  <div class="after">
+    <b>改修後</b>
+    <code>.env</code> 1ファイルのみ。コードからは <code>settings.credential()</code> を
+    通してしか読めない。登録簿に無い名前を読もうとすると、その場で誤りとして落ちる。
+  </div>
+</div>
+
+<h3>1.1 設定できるキーの一覧</h3>
+
+<p>
+アプリが参照するキーは次の8件で、すべて <code>settings.CREDENTIALS</code> に登録済みです。
+ここに無い名前は読み込めません（読もうとした時点でエラーになるため、
+タイプミスが静かに「未設定」として通ることがありません）。
+</p>
+
+<table>
+  <tr><th class="nw">キー名</th><th>用途</th><th class="nw">未設定だとどうなるか</th></tr>
+  <tr><td class="nw"><code>ANTHROPIC_API_KEY</code></td>
+      <td>AI機能すべて（経営AI相談・計画診断・総会QAアプリ）</td>
+      <td class="nw">AI機能が「AI未接続」表示になる</td></tr>
+  <tr><td class="nw"><code>ANTHROPIC_BASE_URL</code></td>
+      <td>LLMの接続先（Amazon Bedrock）</td>
+      <td class="nw">既定値を使う</td></tr>
+  <tr><td class="nw"><code>ANTHROPIC_MODEL</code></td>
+      <td>使うモデル（→ 変更点3）</td>
+      <td class="nw">既定モデルを使う</td></tr>
+  <tr><td class="nw"><code>APP_CREDENTIALS</code></td>
+      <td>画面を開くときのログイン</td>
+      <td class="nw">起動できない</td></tr>
+  <tr><td class="nw"><code>FRED_API_KEY</code></td><td>為替（ドル円）</td>
+      <td class="nw">その指標が「未連携」表示になる</td></tr>
+  <tr><td class="nw"><code>ESTAT_APP_ID</code></td><td>人口・賃金・短期滞在入国者数・建設資材</td>
+      <td class="nw">同上</td></tr>
+  <tr><td class="nw"><code>EDINET_API_KEY</code></td><td>有価証券報告書の取得</td>
+      <td class="nw">同上</td></tr>
+  <tr><td class="nw"><code>JQUANTS_API_KEY</code></td><td>株価・財務データ</td>
+      <td class="nw">同上</td></tr>
+  <tr><td class="nw"><code>MLIT_IN_API_KEY</code></td><td>不動産価格指数・地価</td>
+      <td class="nw">同上</td></tr>
+</table>
+
+<div class="note">
+  <b>「未連携」表示はエラーになりません</b>
+  外部データのキーが未設定でも、アプリはエラーを出さず「未連携」と表示して動作を続けます。
+  数値が空欄である理由が仕様なのか設定漏れなのかを判別できるよう、
+  <strong>未設定のキーは起動ログに一覧で表示されます</strong>。起動時にご確認ください。
+</div>
+
+<h3>1.2 操作方法</h3>
+
+<h4>初めて設定するとき</h4>
+<ol class="steps">
+  <li>ひな形をコピーして <code>.env</code> を作る
+    <pre><code>cp .env.example .env</code></pre></li>
+  <li>テキストエディタで <code>.env</code> を開き、<code>=</code> の右側に値を書く。
+      使わない提供元は空のままで構いません
+    <pre><code><span class="c"># 例</span>
+ANTHROPIC_API_KEY=sk-<span class="c">（実際のキー）</span>
+ESTAT_APP_ID=<span class="c">（実際のID）</span>
+FRED_API_KEY=</code></pre></li>
+  <li>アプリを起動し、ログで設定状況を確認する
+    <pre><code>python3 app.py</code></pre>
+    <pre><code>[OK] LLM: 接続設定あり（model=anthropic.claude-opus-4-8｜Claude Opus 4.8／接続先=bedrock-mantle.ap-northeast-1.api.aws）
+[情報] 未設定のキー（.env）:
+       - FRED_API_KEY｜為替（ドル円）</code></pre></li>
+</ol>
+
+<h4>キーを差し替えるとき</h4>
+<p>
+<code>.env</code> の該当行を書き換えて、アプリを再起動するだけです。
+コードの変更は要りません。データ取得のキーだけを替えた場合は、次の更新実行から新しいキーが使われます。
+</p>
+
+<h4>設定状況だけを確認したいとき</h4>
+<pre><code>python3 pipeline.py status</code></pre>
+<p>末尾に未設定のキーが並びます。アプリを起動せずに確認できます。</p>
+
+<div class="note">
+  <b>キーと接続先は必ず同じ出所から読みます</b>
+  実行環境に <code>ANTHROPIC_BASE_URL</code> などが設定されていると、
+  <code>.env</code> の値と混在してキーと接続先が食い違うおそれがあります。
+  これを避けるため、<strong>キーが <code>.env</code> 由来であれば接続先も <code>.env</code> の値を使う</strong>
+  という規則を設けています。起動ログには実際に使う接続先ホストを表示するため、
+  意図した接続先で動いているかはログで確認できます。
+</div>
+
+<div class="rule">
+  <b>納品前に必ず実施してください</b>
+  現在 <code>.env</code> に入っているAPIキーと <code>APP_CREDENTIALS</code> のパスワードは、
+  開発中に配布したファイルにも含まれています。
+  <strong>すべて発行し直して（ローテーションして）ください。</strong>
+  改修で削除した未参照の鍵ファイルの分も含め、発行元で古い鍵を失効させてください。
+</div>
+
+
+<!-- ============================================================ -->
+<h2 id="c2"><span class="num">2</span>データパイプライン</h2>
+
+<p class="lead">
+資料の取り込み口は <code>pipeline.py</code> というコマンド1本だけです。
+「どこに置いて、何を実行すれば、いつ検索に出るのか」が一意に決まります。
+</p>
+
+<h3>2.1 データの置き場は3つだけ</h3>
+
+<figure>
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="外部データと内部データが統一パイプラインを通って検索用DBに入り、アプリが参照する図">
+  <rect x="8" y="40" width="215" height="112" rx="10" fill="#eef6f2" stroke="#14543b" stroke-width="1.5"/>
+  <text class="tsg" x="24" y="66" font-weight="700">data_external/</text>
+  <text class="tsm" x="24" y="88">外部データ（自動取得）</text>
+  <text class="tsm" x="24" y="108">IR資料・有価証券報告書</text>
+  <text class="tsm" x="24" y="128">監視指標の原票CSV</text>
+  <text class="tsm" x="24" y="146">人は触らない</text>
+
+  <rect x="8" y="170" width="215" height="112" rx="10" fill="#fbf3f5" stroke="#6b1f34" stroke-width="1.5"/>
+  <text class="tsg" x="24" y="196" font-weight="700">data_internal/</text>
+  <text class="tsm" x="24" y="218">内部データ（手で入れる）</text>
+  <text class="tsm" x="24" y="238">議事録・中期経営計画</text>
+  <text class="tsm" x="24" y="258">社内資料</text>
+  <text class="tsm" x="24" y="276">フォルダ名＝分類</text>
+
+  <path d="M223 96 L300 140" stroke="#8a8f97" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+  <path d="M223 226 L300 182" stroke="#8a8f97" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#8a8f97"/>
+    </marker>
+  </defs>
+
+  <rect x="305" y="118" width="205" height="86" rx="10" fill="#6b1f34"/>
+  <text class="tsw" x="330" y="150" font-weight="700" font-size="14">pipeline.py update</text>
+  <text class="tsw" x="330" y="174" font-size="11.5" opacity=".85">統一データパイプライン</text>
+  <text class="tsw" x="330" y="192" font-size="11.5" opacity=".85">差分だけを反映する</text>
+
+  <path d="M510 161 L585 161" stroke="#8a8f97" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+
+  <rect x="590" y="118" width="205" height="86" rx="10" fill="#eef1f6" stroke="#3b4a63" stroke-width="1.5"/>
+  <text class="tsg" x="614" y="150" font-weight="700">runtime_data/rag/</text>
+  <text class="tsm" x="614" y="172">検索用DB（SQLite）</text>
+  <text class="tsm" x="614" y="192">全文検索＋意味検索</text>
+
+  <path d="M692 118 L692 78" stroke="#8a8f97" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+  <rect x="590" y="30" width="205" height="46" rx="10" fill="#fff" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="614" y="59" font-weight="700">アプリの各画面が参照</text>
+</svg>
+<figcaption>取り込み口は1つ。置き場は3つ（外部・内部・アプリの出力）</figcaption>
+<div class="legend">
+  <span><i style="background:#eef6f2;border:1px solid #14543b"></i>外部データ（自動）</span>
+  <span><i style="background:#fbf3f5;border:1px solid #6b1f34"></i>内部データ（手動）</span>
+  <span><i style="background:#eef1f6;border:1px solid #3b4a63"></i>アプリの出力</span>
+</div>
+</figure>
+
+<table>
+  <tr><th class="nw">フォルダ</th><th>中身</th><th class="nw">誰が入れるか</th></tr>
+  <tr><td class="nw"><code>data_external/</code></td>
+      <td>HHHD公表IR資料、有価証券報告書、監視指標の原票CSV</td>
+      <td class="nw">パイプラインが自動取得</td></tr>
+  <tr><td class="nw"><code>data_internal/</code></td>
+      <td>経営会議議事録、株主総会議事録、中期経営計画、IR公表資料、社内資料</td>
+      <td class="nw"><b>人がフォルダへ置く</b></td></tr>
+  <tr><td class="nw"><code>runtime_data/</code></td>
+      <td>検索用DB、生成したレポート、ログ、AIとのやり取りの履歴</td>
+      <td class="nw">アプリが書き出す</td></tr>
+</table>
+
+<h3>2.2 操作方法</h3>
+
+<h4>資料を追加する（いちばんよく使う操作）</h4>
+<ol class="steps">
+  <li>分類のフォルダに資料をドラッグ&amp;ドロップで入れる
+    <pre><code>data_internal/経営会議議事録/2026年8月_経営会議.docx</code></pre></li>
+  <li>反映コマンドを実行する
+    <pre><code>python3 pipeline.py update --internal</code></pre></li>
+  <li>反映されたか確認する
+    <pre><code>python3 pipeline.py status</code></pre></li>
+</ol>
+
+<div class="tip">
+  <b>差分だけを読み直します</b>
+  前回から変わっていないファイルは読み直さず、計算済みの検索用データを再利用します。
+  数百件が収録されていても、追加が1件であれば数秒で完了します。
+  全件を作り直す場合は数分を要するため、日々の運用ではこの差が大きく効きます。
+</div>
+
+<h4>分類（フォルダ）を増やす</h4>
+<p><strong>フォルダを作るだけです。コードの変更は要りません。</strong></p>
+<pre><code>mkdir data_internal/取締役会資料      <span class="c"># 名前は自由。日本語で構わない</span>
+<span class="c"># 資料をこのフォルダへ入れる</span>
+python3 pipeline.py update --internal</code></pre>
+<p>
+次回以降、<code>pipeline.py status</code> にも、画面のアップロード先の選択肢にも、
+この分類が自動で並びます。フォルダを消せば分類も消えます
+（検索用DBからも次の更新時に外れます）。
+</p>
+<div class="note">
+  <b>画面の選択肢へ反映するにはアプリの再起動が必要です</b>
+  アップロード先の選択肢は、画面を組み立てる際に1回だけ読み込むためです。
+  検索への反映（<code>update</code>）は再起動なしで有効になります。
+</div>
+
+<h4>すべてのコマンド</h4>
+<table>
+  <tr><th class="nw">コマンド</th><th>用途</th></tr>
+  <tr><td class="nw"><code>pipeline.py update</code></td><td>外部取得 → 内部取込 → 検索用DBへ差分反映（通常はこれ）</td></tr>
+  <tr><td class="nw"><code>pipeline.py update --internal</code></td><td>手で置いた資料だけ反映する（速い）</td></tr>
+  <tr><td class="nw"><code>pipeline.py update --external</code></td><td>外部データだけ取得する</td></tr>
+  <tr><td class="nw"><code>pipeline.py update --force</code></td><td>期限前でも外部を全件取り直す</td></tr>
+  <tr><td class="nw"><code>pipeline.py status</code></td><td>フォルダ別の件数と検索用DBの状態を見る</td></tr>
+  <tr><td class="nw"><code>pipeline.py rebuild</code></td><td>検索用DBを作り直す（通常は不要。数分かかる）</td></tr>
+</table>
+
+<h3>2.3 扱えるファイル形式</h3>
+
+<p>業務でそのままやり取りする形式に絞っています。</p>
+
+<table>
+  <tr><th class="nw">形式</th><th>検索の単位</th><th>備考</th></tr>
+  <tr><td class="nw">PDF</td><td>ページ単位</td><td>文字情報を持つPDFのみ</td></tr>
+  <tr><td class="nw">Word（.docx）</td><td><b>見出し単位</b></td>
+      <td>見出しスタイル（見出し1〜4）を使うと検索の当たりが良くなる</td></tr>
+  <tr><td class="nw">PowerPoint（.pptx）</td><td>スライド単位</td><td>図の中の文字は読めない</td></tr>
+  <tr><td class="nw">Excel（.xlsx / .xls）・CSV</td><td>シート・表の行単位</td><td>—</td></tr>
+  <tr><td class="nw">テキスト（.txt）</td><td>ファイル全体</td><td>—</td></tr>
+</table>
+
+<div class="note">
+  <b>JSON・Markdownは扱いません</b>
+  業務でやり取りする形式ではないうえ、台帳ファイルや設定ファイルを
+  「資料」として誤って取り込み、検索結果に無関係な断片が混ざる原因になるためです。
+</div>
+
+<h3>2.4 現在入っているデータ</h3>
+
+<table>
+  <tr><th>分類</th><th class="num">資料</th><th class="num">検索用の断片</th></tr>
+  <tr><td>内部：株主総会議事録</td><td class="num">11件</td><td class="num">180</td></tr>
+  <tr><td>内部：中期経営計画</td><td class="num">2件</td><td class="num">16</td></tr>
+  <tr><td>内部：社内資料</td><td class="num">2件</td><td class="num">3</td></tr>
+  <tr><td>外部：HHHD公表IR資料</td><td class="num">467件</td><td class="num">5,878</td></tr>
+  <tr><td>外部：有価証券報告書</td><td class="num">11件</td><td class="num">441</td></tr>
+  <tr><td>外部：監視指標の原票CSV</td><td class="num">90件</td><td class="num">—</td></tr>
+  <tr><th>合計</th><th class="num">583件</th><th class="num">6,630</th></tr>
+</table>
+
+<div class="warn">
+  <b>収録済みの議事録・質疑応答はダミーデータです</b>
+  株主総会議事録フォルダの第178回〜第187回の議事録10件と質疑応答60件は、
+  アプリ検証用に作成した<strong>架空のデータ</strong>です。
+  発言者は役職名のみとし、実在の個人には帰属しません。
+  各ファイルの冒頭とExcelの「注意」シートにも同じ注意書きを入れてあります。
+  実データが用意でき次第、同じ形式のまま差し替えられます。
+</div>
+
+
+<!-- ============================================================ -->
+<h2 id="c3"><span class="num">3</span>LLMの切り替え</h2>
+
+<p class="lead">
+AIへの指示文（プロンプト）は <code>ai_prompts.py</code> 1ファイルに集約してあります。
+使うモデルは <code>.env</code> の1行で切り替わり、
+プロンプトも呼び出し方も変更は要りません。
+</p>
+
+<h3>3.1 プロンプトの保守は1ファイルに集約済み</h3>
+
+<p>
+AIへ送る指示文は、すべて <code>ai_prompts.py</code> の中にあります。
+各画面のコード（<code>app.py</code>・<code>agm/service.py</code>・<code>knowledge_rag.py</code>）は
+「どの指示文を使うか」を選ぶだけで、文面そのものは持っていません。
+</p>
+
+<pre><code><span class="c"># 呼び出し側は常にこの形。文面はここには書かない</span>
+messages = ai_prompts.agm_answer_messages(question, category, evidence, ...)
+result   = ai_client.call_chat_json(messages, feature=<span class="k">"agm.answer"</span>)</code></pre>
+
+<p>機能別の指示文は <code>ai_prompts.py</code> に集約しています。</p>
+
+<table>
+  <tr><th class="nw">画面・機能</th><th>指示文</th></tr>
+  <tr><td class="nw">経営AI相談</td>
+      <td><code>interpret_messages</code>（質問の解釈）、<code>assistant_messages</code>
+          （自由質問・原稿支援・計画示唆・シナリオ・診断深掘りの5種）</td></tr>
+  <tr><td class="nw">経営ダッシュボード</td><td><code>dashboard_messages</code></td></tr>
+  <tr><td class="nw">計画診断</td><td><code>diagnosis_messages</code></td></tr>
+  <tr><td class="nw">資料検索</td><td><code>knowledge_messages</code></td></tr>
+  <tr><td class="nw">総会QAアプリ</td>
+      <td><code>agm_question_messages</code>（想定質問の予測）、<code>agm_answer_messages</code>（回答案）、
+          <code>agm_review_messages</code>、<code>agm_question_set_review_messages</code>、
+          <code>agm_table_summary_messages</code>、<code>agm_import_enrichment_messages</code>、
+          <code>agm_consolidation_messages</code>（BU・HHHD統合）、
+          <code>agm_executive_summary_messages</code>、<code>agm_rehearsal_messages</code></td></tr>
+</table>
+
+<div class="tip">
+  <b>この集約はテストで担保しています</b>
+  <code>tests/test_llm_switching.py</code> が、<code>ai_prompts.py</code> 以外のファイルで
+  AIへのメッセージを組み立てていないことを検査します。
+  画面側に文面を書くとテストが落ちるため、同じ文面が複数箇所に分散することを防げます。
+</div>
+
+<h3>3.2 モデルの切り替え方</h3>
+
+<p><code>.env</code> のこの1行を書き換えて、アプリを再起動するだけです。</p>
+
+<pre><code>ANTHROPIC_MODEL=anthropic.claude-opus-4-8</code></pre>
+
+<h4>候補の一覧を見る</h4>
+<pre><code>python3 ai_client.py</code></pre>
+<pre><code>■ 使用中のモデル: anthropic.claude-opus-4-8
+  設定箇所: .env の ANTHROPIC_MODEL
+  接続先  : https://bedrock-mantle.ap-northeast-1.api.aws/anthropic
+
+■ 切り替え候補（.env に書く値）
+  ★使用中 anthropic.claude-opus-4-8     上位
+     anthropic.claude-opus-4-7     上位
+     anthropic.claude-haiku-4-5    軽量</code></pre>
+
+<h4>本当に使えるかを実測する</h4>
+<pre><code>python3 ai_client.py --probe</code></pre>
+<p>
+各候補へ実際にごく短い質問を送り、応答が返るかを確かめます。
+利用できるモデルは契約内容で変わるため、
+候補一覧と実態がずれていないかはこのコマンドで確認できます。
+</p>
+
+<h3>3.3 切り替え候補</h3>
+
+<p>
+接続先（Amazon Bedrock）が実際に提供しているモデルを、2026年8月16日に実測した結果です。
+</p>
+
+<table class="models">
+  <colgroup><col style="width:31%"><col><col style="width:12%"><col style="width:13%"></colgroup>
+  <tr><th>モデル</th><th>特徴</th>
+      <th>応答速度<br><span style="font-weight:400;font-size:11px">（実測）</span></th>
+      <th>利用可否</th></tr>
+  <tr>
+    <td><code>anthropic.claude-opus-4-8</code><br><span class="tier">上位</span></td>
+    <td>現在の既定。長い工程の自律作業と知識労働に強い。実績のある構成</td>
+    <td class="num">3.6秒</td>
+    <td class="nw"><span class="pill now">使用中</span></td>
+  </tr>
+  <tr>
+    <td><code>anthropic.claude-opus-4-7</code><br><span class="tier">上位</span></td>
+    <td>4.8の一世代前。品質はほぼ同等で、指示への追従がより字義どおり</td>
+    <td class="num">2.7秒</td>
+    <td class="nw"><span class="pill on">利用可</span></td>
+  </tr>
+  <tr>
+    <td><code>anthropic.claude-haiku-4-5</code><br><span class="tier">軽量</span></td>
+    <td>最も速く安い。要約・分類向け。<b>長文の分析や診断文の生成には非力</b>で、
+        本アプリの主要機能には推奨しない</td>
+    <td class="num">1.0秒</td>
+    <td class="nw"><span class="pill on">利用可</span></td>
+  </tr>
+  <tr>
+    <td><code>anthropic.claude-opus-5</code><br><span class="tier">最上位</span></td>
+    <td>最も高性能。難しい分析・長い工程に強い</td>
+    <td class="num">—</td>
+    <td class="nw"><span class="pill off">未提供</span></td>
+  </tr>
+  <tr>
+    <td><code>anthropic.claude-sonnet-5</code><br><span class="tier">中位</span></td>
+    <td>速度と価格の均衡。上位より安く実用品質は高い</td>
+    <td class="num">—</td>
+    <td class="nw"><span class="pill off">未提供</span></td>
+  </tr>
+  <tr>
+    <td><code>anthropic.claude-sonnet-4-6</code><br><span class="tier">中位</span></td>
+    <td>Sonnet 5の一世代前</td>
+    <td class="num">—</td>
+    <td class="nw"><span class="pill off">未提供</span></td>
+  </tr>
+</table>
+
+<div class="note">
+  <b>「未提供」は現在の契約で使えないという意味です</b>
+  モデルIDとしては正しく、アプリ側の作法（後述）も登録済みですが、
+  現在の接続先へ送ると <code>404 does not exist</code> が返ります。
+  契約で使えるようになったら、<code>ai_client.MODELS</code> の該当行の
+  <code>available</code> を <code>True</code> にするだけで候補に並びます。
+  プロンプトも呼び出し側も変更は要りません。
+</div>
+
+<h3>3.4 モデルごとの作法の違いはアプリが吸収する</h3>
+
+<p>
+モデルを替えると、実は送信の作法が変わります。ここを手作業で合わせる設計だと、
+切り替えた瞬間に全AI機能が止まります。そこで違いを
+<code>ai_client.MODELS</code> という表に持たせ、送信時にアプリが自動で合わせています。
+</p>
+
+<table>
+  <tr><th class="nw">違い</th><th>放置するとどうなるか</th><th>アプリの対応</th></tr>
+  <tr>
+    <td class="nw">温度指定<br>（<code>temperature</code>）</td>
+    <td>新しい世代（Opus 4.7以降）はこの指定を廃止しており、送ると<b>400エラーとなり
+        AI機能が停止</b>する。一方 Haiku 4.5 では使える</td>
+    <td>モデルごとに送るか送らないかを表から判断する</td>
+  </tr>
+  <tr>
+    <td class="nw">思考トークン</td>
+    <td>思考が既定でONのモデル（Opus 5 / Sonnet 5）では、
+        思考の分も出力の上限に数えられる。従来と同じ上限のままだと<b>回答が途中で切れる</b></td>
+    <td>該当モデルのときだけ出力枠を自動で広げる</td>
+  </tr>
+  <tr>
+    <td class="nw">出力の上限</td>
+    <td>モデルごとに上限が違う（Haiku は他より小さい）。超えると400エラー</td>
+    <td>モデルの上限で頭打ちにする</td>
+  </tr>
+  <tr>
+    <td class="nw">安全性による拒否</td>
+    <td>新しい世代は安全性の判断で回答を控えることがある。
+        このとき通信は<b>成功扱い（HTTP 200）で本文が空</b>になるため、
+        回答が得られていないことを画面が判別できない</td>
+    <td>明示的に失敗として扱い、画面に「AI未接続」相当の但し書きを出す</td>
+  </tr>
+</table>
+
+<div class="tip">
+  <b>3モデルでの動作を確認しています</b>
+  経営AI相談の質問解釈プロンプト（716文字）を、<code>opus-4-8</code> / <code>opus-4-7</code> /
+  <code>haiku-4-5</code> の3モデルへ<strong>そのまま</strong>送り、
+  いずれも同じ構造（<code>intent</code> / <code>search_query</code> / <code>series</code> /
+  <code>next_step</code>）のJSONを返すことを確認しています。
+  温度指定は <code>haiku-4-5</code> にのみ送られ、他の2つには送られません。
+  この差はアプリが自動で吸収します。
+</div>
+
+<h3>3.5 どのモデルを選ぶべきか</h3>
+
+<table>
+  <tr><th class="nw">状況</th><th>推奨</th></tr>
+  <tr><td class="nw">通常運用</td>
+      <td><code>anthropic.claude-opus-4-8</code>（既定のまま）。
+          診断文・回答案の品質がこのアプリの価値の中心であり、
+          応答速度の差（1〜3秒）はそれに見合いません</td></tr>
+  <tr><td class="nw">上位モデルが不調・停止のとき</td>
+      <td><code>anthropic.claude-opus-4-7</code> へ退避。品質はほぼ同等です</td></tr>
+  <tr><td class="nw">大量の資料を一括で分類・要約したいとき</td>
+      <td><code>anthropic.claude-haiku-4-5</code>。ただし
+          <b>診断文・回答案の生成には使わないでください</b>（内容が浅くなります）</td></tr>
+</table>
+
+</section>
+
+
+<!-- ================================================================ -->
+<!-- タブ2：開発者マニュアル                                          -->
+<!-- ================================================================ -->
+<section class="panel" id="p2">
+
+<div class="toc">
+  <h2>目次</h2>
+  <ol>
+    <li><a href="#d1">まず動かす</a></li>
+    <li><a href="#d2">全体像</a></li>
+    <li><a href="#d3">ディレクトリとモジュール</a></li>
+    <li><a href="#d4">データの流れ</a></li>
+    <li><a href="#d5">検索索引（RAG）の内部</a></li>
+    <li><a href="#d6">LLM連携</a></li>
+    <li><a href="#d7">画面の作り（Gradio）</a></li>
+    <li><a href="#d8">拡張のしかた</a></li>
+    <li><a href="#d9">テスト</a></li>
+    <li><a href="#d10">守るべき設計上の約束</a></li>
+    <li><a href="#d11">トラブルシュート</a></li>
+  </ol>
+  <div class="scope">
+    <span>読者：このアプリを保守・改修する開発者</span>
+    <span>より詳しい版：doc/開発者マニュアル.html</span>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="d1"><span class="num">1</span>まず動かす</h2>
+
+<pre><code><span class="c"># 1. 依存を入れる</span>
+pip install -r requirements.txt
+
+<span class="c"># 2. 設定ファイルを作る（→ タブ1の変更点1）</span>
+cp .env.example .env
+<span class="c">#    エディタで .env にキーを書く</span>
+
+<span class="c"># 3. データを取り込む（初回は数分かかる）</span>
+python3 pipeline.py update
+
+<span class="c"># 4. 起動する</span>
+python3 app.py
+<span class="c">#    http://localhost:7860 を開く</span></code></pre>
+
+<table>
+  <tr><th class="nw">項目</th><th>値</th></tr>
+  <tr><td class="nw">言語・実行環境</td><td>Python 3.11</td></tr>
+  <tr><td class="nw">画面フレームワーク</td><td>Gradio 6（単一 Blocks ＋ 画面切替）</td></tr>
+  <tr><td class="nw">生成AI</td><td>Amazon Bedrock 経由の Claude（<code>anthropic</code> SDK）</td></tr>
+  <tr><td class="nw">検索</td><td>SQLite FTS5（全文検索）＋ sentence-transformers（意味検索）</td></tr>
+  <tr><td class="nw">埋め込みモデル</td><td><code>hotchpotch/static-embedding-japanese</code>（固定）</td></tr>
+  <tr><td class="nw">既定のポート</td><td>7860（<code>GRADIO_SERVER_PORT</code> で変更可）</td></tr>
+</table>
+
+<div class="note">
+  <b>埋め込みモデルは固定です</b>
+  検索用DBは特定の埋め込みモデルで計算した値を保持しているため、
+  モデルを替えると既存のDBと整合しなくなります。
+  環境変数での上書きは意図的に用意していません。
+  変更する場合はコードを直したうえで <code>pipeline.py rebuild</code> が必要です。
+  （生成AIのモデル切り替えは別の話です。→ タブ1の変更点3）
+</div>
+
+<!-- ============================================================ -->
+<h2 id="d2"><span class="num">2</span>全体像</h2>
+
+<figure>
+<svg viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="データ層・処理層・画面層の3層構成を示す図">
+  <text class="tsm" x="14" y="24" font-weight="700">データ層</text>
+  <rect x="14" y="34" width="180" height="60" rx="9" fill="#eef6f2" stroke="#14543b" stroke-width="1.5"/>
+  <text class="tsg" x="30" y="58">data_external/</text>
+  <text class="tsm" x="30" y="78">外部データ（自動取得）</text>
+  <rect x="14" y="104" width="180" height="60" rx="9" fill="#fbf3f5" stroke="#6b1f34" stroke-width="1.5"/>
+  <text class="tsg" x="30" y="128">data_internal/</text>
+  <text class="tsm" x="30" y="148">内部データ（手動投入）</text>
+  <rect x="14" y="174" width="180" height="60" rx="9" fill="#eef1f6" stroke="#3b4a63" stroke-width="1.5"/>
+  <text class="tsg" x="30" y="198">runtime_data/</text>
+  <text class="tsm" x="30" y="218">検索用DB・出力・ログ</text>
+  <rect x="14" y="244" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="30" y="268">.env</text>
+  <text class="tsm" x="30" y="286">APIキー（唯一の置き場）</text>
+
+  <text class="tsm" x="256" y="24" font-weight="700">処理層</text>
+  <rect x="256" y="34" width="180" height="52" rx="9" fill="#6b1f34"/>
+  <text class="tsw" x="272" y="58" font-weight="700">pipeline.py</text>
+  <text class="tsw" x="272" y="76" font-size="11" opacity=".85">取り込みの唯一の入口</text>
+  <rect x="256" y="96" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="272" y="120" font-weight="700">knowledge_rag.py</text>
+  <text class="tsm" x="272" y="138">索引の作成と検索</text>
+  <rect x="256" y="158" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="272" y="182" font-weight="700">ai_prompts.py</text>
+  <text class="tsm" x="272" y="200">指示文（唯一の置き場）</text>
+  <rect x="256" y="220" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="272" y="244" font-weight="700">ai_client.py</text>
+  <text class="tsm" x="272" y="262">LLM送信・モデルの作法</text>
+  <rect x="256" y="282" width="180" height="44" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="272" y="308" font-weight="700">settings.py</text>
+
+  <text class="tsm" x="498" y="24" font-weight="700">画面層</text>
+  <rect x="498" y="34" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="514" y="58" font-weight="700">app.py</text>
+  <text class="tsm" x="514" y="76">14画面の組み立てと配線</text>
+  <rect x="498" y="96" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="514" y="120" font-weight="700">ui.py / ui_agm.py</text>
+  <text class="tsm" x="514" y="138">HTMLの組み立て</text>
+  <rect x="498" y="158" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="514" y="182" font-weight="700">agm/</text>
+  <text class="tsm" x="514" y="200">総会QAアプリの中核</text>
+  <rect x="498" y="220" width="180" height="52" rx="9" fill="#fafbfc" stroke="#e3e5e8" stroke-width="1.5"/>
+  <text class="tsg" x="514" y="244" font-weight="700">evidence.py</text>
+  <text class="tsm" x="514" y="262">根拠から原本へのリンク</text>
+
+  <rect x="740" y="34" width="146" height="238" rx="9" fill="#6b1f34"/>
+  <text class="tsw" x="762" y="140" font-weight="700" font-size="14">利用者</text>
+  <text class="tsw" x="762" y="164" font-size="11.5" opacity=".85">ブラウザ</text>
+
+  <path d="M194 64 L250 60" stroke="#8a8f97" stroke-width="1.4" fill="none" marker-end="url(#a2)"/>
+  <path d="M194 134 L250 70" stroke="#8a8f97" stroke-width="1.4" fill="none" marker-end="url(#a2)"/>
+  <path d="M346 86 L346 92" stroke="#8a8f97" stroke-width="1.4" fill="none" marker-end="url(#a2)"/>
+  <path d="M436 122 L492 60" stroke="#8a8f97" stroke-width="1.4" fill="none" marker-end="url(#a2)"/>
+  <path d="M436 184 L492 244" stroke="#8a8f97" stroke-width="1.4" fill="none" marker-end="url(#a2)"/>
+  <path d="M678 60 L734 100" stroke="#8a8f97" stroke-width="1.4" fill="none" marker-end="url(#a2)"/>
+  <defs>
+    <marker id="a2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#8a8f97"/>
+    </marker>
+  </defs>
+</svg>
+<figcaption>データ層・処理層・画面層。矢印は依存の向き（下位は上位を知らない）</figcaption>
+</figure>
+
+<h3>2.1 設計の中心にある3つの約束</h3>
+<table>
+  <tr><th class="nw">約束</th><th>意味</th><th class="nw">守っているもの</th></tr>
+  <tr><td class="nw">取り込み口は1つ</td>
+      <td>資料が検索に入る経路は <code>pipeline.py</code> と画面アップロードのみ。
+          両者とも <code>knowledge_rag</code> の同じ関数を通る</td>
+      <td class="nw"><code>pipeline.py</code></td></tr>
+  <tr><td class="nw">鍵の置き場は1つ</td>
+      <td>APIキーは <code>.env</code> のみ。読み出しは <code>settings.credential()</code> 経由</td>
+      <td class="nw"><code>settings.py</code></td></tr>
+  <tr><td class="nw">指示文の置き場は1つ</td>
+      <td>AIへの指示文は <code>ai_prompts.py</code> のみ。画面側は選ぶだけ</td>
+      <td class="nw"><code>ai_prompts.py</code></td></tr>
+</table>
+
+<h3>2.2 ダミーデータを置かない方針</h3>
+<p>
+画面に出る数値・文章は、必ずどこかの実データかLLMの生成物です。
+コード内にそれらしい既定値を書いてはいけません。データが無い場合は
+<code>「未連携」</code>／<code>「取得待ち」</code>と表示し、
+<strong>「無い」ことが分かる形</strong>にします（<code>data.py</code> の
+<code>_ext()</code> / <code>_internal()</code>）。
+もっともらしい数値が出ると、それが実測なのか仮なのかを画面から判別できなくなるためです。
+</p>
+
+<!-- ============================================================ -->
+<h2 id="d3"><span class="num">3</span>ディレクトリとモジュール</h2>
+
+<div class="tree">gradio_app_0804/
+├─ <b>app.py</b>              <i>14画面の組み立てと配線（3,944行）</i>
+├─ <b>ui.py</b>               <i>画面HTMLの組み立て・CSS（2,578行）</i>
+├─ <b>knowledge_rag.py</b>    <i>索引の作成と検索（2,450行）</i>
+├─ <b>ai_prompts.py</b>       <i>AIへの指示文（854行）★文面はここだけ</i>
+├─ <b>ai_client.py</b>        <i>LLM送信・モデルの作法（543行）</i>
+├─ <b>settings.py</b>         <i>設定とAPIキーの登録簿（260行）</i>
+├─ <b>pipeline.py</b>         <i>統一データパイプライン（187行）★取り込みの入口</i>
+├─ <b>data.py</b>             <i>事業・指標の定義（838行）</i>
+├─ <b>evidence.py</b>         <i>根拠から原本へのリンク解決（181行）</i>
+├─ reset_runtime.py       <i>作業データの初期化（57行）</i>
+├─ agm/                   <i>総会QAアプリの中核</i>
+│   ├─ service.py         <i>質問予測・回答生成（1,197行）</i>
+│   ├─ history.py         <i>過去質疑の履歴（370行）</i>
+│   ├─ models.py          <i>データ構造（320行）</i>
+│   ├─ repository.py      <i>Excelからの読み込み（202行）</i>
+│   └─ export.py          <i>Word書き出し（177行）</i>
+├─ collectors/            <i>外部データの取得</i>
+├─ data_external/         <i>外部データ（自動取得・764MB）</i>
+├─ data_internal/         <i>内部データ（手動投入・10MB）</i>
+├─ runtime_data/          <i>検索用DB・出力・ログ（639MB）</i>
+├─ doc/                   <i>マニュアル（HTML）</i>
+├─ docs/                  <i>仕様書・報告書（Markdown）</i>
+├─ tests/                 <i>テスト（354件）</i>
+└─ .env                   <i>APIキー（★唯一の置き場・Git管理外）</i></div>
+
+<p>Pythonコードは全体で約24,800行、プロジェクト全体で1.4GBです（うち大半はデータ）。</p>
+
+<!-- ============================================================ -->
+<h2 id="d4"><span class="num">4</span>データの流れ</h2>
+
+<h3>4.1 差分更新の仕組み</h3>
+<p>
+更新のたびに全件を読み直すと数分かかるため、変わったファイルだけを処理します。
+判定には<strong>ファイルの内容から作る指紋</strong>を使います
+（サイズ＋先頭と末尾のハッシュ値）。更新日時は使いません。
+コピーや再配置によって日時だけが変わったファイルを、不要に読み直さないためです。
+</p>
+
+<table>
+  <tr><th class="nw">状態</th><th>処理</th></tr>
+  <tr><td class="nw">指紋が前回と同じ</td><td>読み込みも計算も飛ばす</td></tr>
+  <tr><td class="nw">指紋が違う</td><td>そのファイルだけ読み直して索引を更新</td></tr>
+  <tr><td class="nw">ファイルが消えた</td><td>索引から該当分を削除</td></tr>
+</table>
+
+<div class="rule">
+  <b>読み取り方を変えたら「抽出バージョン」を上げること</b>
+  ファイルの内容が同じであれば、アプリ側の読み取り方（Wordを見出し単位で分割する等）を
+  変更しても指紋は変わらないため、再処理されません。
+  形式ごとに <code>_OFFICE_EXTRACTION_VERSION</code> などの版数を持たせてあるので、
+  読み取り方を変えたらこの数字を1つ上げてください。該当形式のファイルだけが読み直されます。
+  この対応を行わないと、コードを変更しても検索結果に反映されません。
+</div>
+
+<h3>4.2 索引IDの規則</h3>
+<p>
+各断片には<code>「資料の種類＋ファイル名＋位置」</code>からIDを作ります。
+ファイル名は必ず <b>NFC正規化</b>してから使います。
+macOSはファイル名の濁点を分解して保存する（NFD）ため、
+正規化しないと同じファイルが別物として扱われ、開発機と配布先で索引の整合が取れなくなります。
+</p>
+
+<h3>4.3 外部データの更新方式</h3>
+<table>
+  <tr><th class="nw">方式</th><th>意味</th><th class="nw">件数</th></tr>
+  <tr><td class="nw">window</td><td>直近N期間を毎回取り直す（改定が入る統計）</td><td class="nw">6</td></tr>
+  <tr><td class="nw">snapshot</td><td>最新時点で丸ごと置き換える</td><td class="nw">4</td></tr>
+  <tr><td class="nw">merge</td><td>既存に新しい分を継ぎ足す</td><td class="nw">2</td></tr>
+</table>
+<p>定義は <code>refresh_policy.POLICIES</code> にあります。</p>
+
+<!-- ============================================================ -->
+<h2 id="d5"><span class="num">5</span>検索索引（RAG）の内部</h2>
+
+<h3>5.1 検索の流れ</h3>
+<ol class="steps">
+  <li><b>質問の解釈</b>：会話の言葉（「その2点目は？」）のままでは検索に当たらないため、
+      LLMで自立した検索語に直す（<code>ai_prompts.interpret_messages</code>）</li>
+  <li><b>2種類の検索を並行実行</b>：SQLite FTS5 による全文検索（語の一致）と、
+      埋め込みベクトルによる意味検索（言い換えに強い）</li>
+  <li><b>統合と並べ替え</b>：両者の結果を突き合わせて上位を選ぶ</li>
+  <li><b>回答生成</b>：選んだ断片を根拠としてLLMへ渡す</li>
+  <li><b>原本へのリンク</b>：<code>evidence.py</code> が断片から元ファイルを引き当て、
+      画面から原本を開けるようにする</li>
+</ol>
+
+<h3>5.2 意図的に索引へ入れないもの</h3>
+<ul>
+  <li><code>README.md</code> などの案内文（資料ではないため）</li>
+  <li>JSON・Markdown 全般（台帳・設定ファイルの誤取り込みを防ぐため）</li>
+  <li>パイプラインが持つ管理ファイル（<code>manifest.json</code> など）</li>
+</ul>
+
+<h3>5.3 株主総会議事録フォルダだけ読み方が違う</h3>
+<table>
+  <tr><th class="nw">ファイル</th><th>読み方</th><th>理由</th></tr>
+  <tr><td class="nw"><code>過去質疑応答一覧.xlsx</code></td><td>1行＝1問として読む</td>
+      <td>「過去に何を聞かれたか」を論点ごとに引けるようにするため</td></tr>
+  <tr><td class="nw">その他のWord・PDF</td><td>見出し単位に分ける</td>
+      <td>議事録の該当箇所を根拠として示すため</td></tr>
+</table>
+<p>
+論点の出現回数や直近に問われた回次は<strong>保存していません</strong>。
+Excelの行を足し引きするたびに数え直すため、集計がずれることがありません
+（<code>agm/repository.py</code> の <code>_derive()</code>）。
+</p>
+
+<!-- ============================================================ -->
+<h2 id="d6"><span class="num">6</span>LLM連携</h2>
+
+<h3>6.1 2系統の呼び出し口</h3>
+<table>
+  <tr><th class="nw">関数</th><th>失敗したとき</th><th>使う場面</th></tr>
+  <tr><td class="nw"><code>chat()</code> / <code>chat_json()</code></td>
+      <td>例外を送出する</td><td>内部処理。呼び出し側で握りつぶさない場合</td></tr>
+  <tr><td class="nw"><code>call_chat()</code> / <code>call_chat_json()</code></td>
+      <td>例外を出さず <code>LLMResult</code> を返す</td>
+      <td>画面。「AIが答えた」のか「AIを呼べなかった」のかを区別して表示するため</td></tr>
+</table>
+
+<pre><code>result = ai_client.call_chat_json(messages, feature=<span class="k">"agm.answer"</span>)
+<span class="k">if not</span> result.ok:
+    <span class="c"># result.status に unconfigured / http_401 / timeout / refusal などが入る</span>
+    <span class="c"># 画面は「AI未接続」の但し書きを出す</span></code></pre>
+
+<h3>6.2 一時的な失敗の再試行</h3>
+<p>
+429・5xx・ネットワーク断・タイムアウトは指数バックオフ（1秒 → 2秒）で最大3回試します。
+回復しなければ従来どおり失敗として扱います。
+計画診断・シナリオ分析・質問予測は待ち時間120秒で動くため、
+タイムアウト再試行の上限もそこに合わせてあります
+（60秒のままだと「一番重くて一番落ちやすい処理だけ再試行されない」状態になるため）。
+</p>
+
+<h3>6.3 JSON形式での受け取り</h3>
+<p>
+Bedrock経由のClaudeにはJSON専用モードがないため、システム指示で
+「JSONオブジェクトを1つだけ、前置きもコードフェンスも付けずに返す」よう求め、
+受け取り側でコードフェンス付きでも拾えるようにしています。
+</p>
+
+<h3>6.4 モデルの切り替え</h3>
+<p>→ タブ1の変更点3に詳述しています。要点だけ再掲します。</p>
+<ul>
+  <li>切り替えは <code>.env</code> の <code>ANTHROPIC_MODEL</code> 1行</li>
+  <li>モデルごとの作法は <code>ai_client.MODELS</code> が持ち、送信時に自動で合わせる</li>
+  <li>候補の確認は <code>python3 ai_client.py</code>、実測は <code>--probe</code></li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="d7"><span class="num">7</span>画面の作り（Gradio）</h2>
+
+<h3>7.1 画面切替</h3>
+<p>
+14画面すべてが1つの Gradio Blocks の中にあり、
+表示の切り替えはブラウザ側のJavaScript（<code>showView()</code>）で行います。
+サーバーへの再描画要求が発生しないため切り替えが速く、
+入力途中の内容も保持されます。
+</p>
+
+<h3>7.2 HTML → Python の橋渡し（プロキシ方式）</h3>
+<p>
+自前で組み立てたHTML内のボタンからPythonの処理を呼びたい場合、
+画面上は見えない Gradio のボタン（プロキシ）を置き、
+HTML側のクリックでそれをJavaScriptから押します。
+Gradio のイベント配線を通るため、状態管理が壊れません。
+</p>
+
+<h3>7.3 セッションの分離</h3>
+<p>
+利用者ごとの状態は Gradio の <code>gr.State</code> に持たせ、
+モジュールのグローバル変数には置きません。
+複数人が同時に使ったときに他人の入力が混ざるためです。
+</p>
+
+<!-- ============================================================ -->
+<h2 id="d8"><span class="num">8</span>拡張のしかた</h2>
+
+<h3>8.1 内部データの分類を増やす</h3>
+<p><code>data_internal/</code> にフォルダを作るだけです。コード変更は不要
+（→ タブ1の変更点2に手順）。</p>
+
+<h3>8.2 外部データソースを増やす</h3>
+<ol class="steps">
+  <li><code>collectors/</code> に取得処理を追加する</li>
+  <li><code>data_source_config.py</code> に定義を追加する</li>
+  <li>APIキーが要る場合は <code>settings.CREDENTIALS</code> に登録し、
+      <code>.env.example</code> にも行を足す</li>
+  <li><code>refresh_policy.POLICIES</code> に更新方式（window / snapshot / merge）を書く</li>
+</ol>
+
+<h3>8.3 プロンプトを変える</h3>
+<p>
+<code>ai_prompts.py</code> の該当する関数だけを直します。
+呼び出し側は変更しません。<strong>画面側のファイルに文面を書かないでください。</strong>
+<code>tests/test_llm_switching.py</code> がこれを検査します。
+</p>
+
+<h3>8.4 LLMを切り替える／候補を増やす</h3>
+<p>
+切り替えは <code>.env</code> のみ。候補を増やす場合は
+<code>ai_client.MODELS</code> に1行足し、<code>.env.example</code> にも書きます
+（この2つがずれるとテストが落ちます）。
+</p>
+
+<h3>8.5 画面を増やす</h3>
+<ol class="steps">
+  <li><code>ui.py</code> に画面HTMLを組み立てる関数を足す</li>
+  <li><code>app.py</code> に <code>gr.Column(visible=False)</code> で画面を足す</li>
+  <li>ナビゲーションに項目を足し、<code>showView()</code> の対象に加える</li>
+</ol>
+
+<!-- ============================================================ -->
+<h2 id="d9"><span class="num">9</span>テスト</h2>
+
+<pre><code>python3 -m pytest tests/ -q</code></pre>
+
+<p>
+現在354件（うち351件が成功）。残る3件は画面のレイアウトに関する検査で、
+今回の改修範囲外の既知項目です。
+</p>
+
+<table>
+  <tr><th class="nw">ファイル</th><th>守っているもの</th></tr>
+  <tr><td class="nw"><code>test_data_pipeline.py</code></td>
+      <td>フォルダ＝分類の規約、README除外、形式ごとの分割、削除範囲、NFC正規化</td></tr>
+  <tr><td class="nw"><code>test_credentials.py</code></td>
+      <td>キーの登録簿、<code>.env</code> の解釈、キーと接続先の組み合わせ</td></tr>
+  <tr><td class="nw"><code>test_llm_switching.py</code></td>
+      <td>モデル切り替えの規約、モデルごとの作法、<b>指示文が1ファイルに集約されていること</b></td></tr>
+  <tr><td class="nw"><code>test_evidence.py</code></td><td>根拠から原本へのリンク解決</td></tr>
+  <tr><td class="nw"><code>test_agm_*.py</code></td><td>総会QAアプリの各機能</td></tr>
+  <tr><td class="nw"><code>live_api_smoke.py</code></td>
+      <td>実際のAPIへ疎通する確認（通常のテストとは別に手動実行）</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="d10"><span class="num">10</span>守るべき設計上の約束</h2>
+
+<table>
+  <tr><th class="nw">約束</th><th>破るとどうなるか</th></tr>
+  <tr><td class="nw">APIキーは <code>.env</code> のみ</td>
+      <td>どれが使われているか追えなくなる。差し替え漏れと流出面が増える</td></tr>
+  <tr><td class="nw">指示文は <code>ai_prompts.py</code> のみ</td>
+      <td>同じ文面が複数箇所に分散し、一方だけが修正された状態になる</td></tr>
+  <tr><td class="nw">取り込みは <code>pipeline.py</code> 経由</td>
+      <td>検索に反映される条件が経路ごとに変わり、未反映時の原因を特定できなくなる</td></tr>
+  <tr><td class="nw">ダミーの数値を書かない</td>
+      <td>画面の数値が実測値か仮の値かを判別できなくなり、経営判断の根拠として使えなくなる</td></tr>
+  <tr><td class="nw">読み取り方を変えたら版数を上げる</td>
+      <td>コードを変更しても検索結果に反映されない（→ 4.1）</td></tr>
+  <tr><td class="nw">ファイル名はNFC正規化する</td>
+      <td>macOSとLinuxで同一ファイルが別のものとして扱われる（→ 4.2）</td></tr>
+  <tr><td class="nw">利用者の状態は <code>gr.State</code> へ</td>
+      <td>複数名が同時に利用した際、他の利用者の入力が混在する</td></tr>
+</table>
+
+<div class="warn">
+  <b><code>reset_runtime.py</code> は作業データを消します</b>
+  AIとのやり取りの履歴、想定質問の予測結果、生成レポート、ログを削除します
+  （検索用DBと資料は残ります）。実行前に <code>--dry-run</code> で対象を確認してください。
+</div>
+
+<!-- ============================================================ -->
+<h2 id="d11"><span class="num">11</span>トラブルシュート</h2>
+
+<table>
+  <tr><th class="nw">症状</th><th>確認すること</th></tr>
+  <tr>
+    <td class="nw">AI機能だけが動かない<br>（401エラー）</td>
+    <td>端末に <code>ANTHROPIC_BASE_URL</code> や <code>ANTHROPIC_API_KEY</code> が
+        export されていないか。起動ログの接続先ホストが <code>.env</code> の値と一致しているか
+        （→ タブ1の変更点1）</td>
+  </tr>
+  <tr>
+    <td class="nw">AI機能が「AI未接続」になる</td>
+    <td>起動ログを見る。SDK未導入とキー未設定は別々に表示されます</td>
+  </tr>
+  <tr>
+    <td class="nw">モデルを替えたら<br>404エラーになる</td>
+    <td><code>python3 ai_client.py --probe</code> で、その接続先が本当にそのモデルを
+        提供しているか確認する（→ タブ1の変更点3）</td>
+  </tr>
+  <tr>
+    <td class="nw">資料を入れたのに<br>検索に出ない</td>
+    <td><code>python3 pipeline.py status</code> を実行する。
+        該当ファイルに <code>!</code> が付いていれば原因の見当が出ます。
+        最も多いのは<b>文字情報を持たない画像PDF</b>（スキャンしただけのPDF）です</td>
+  </tr>
+  <tr>
+    <td class="nw">新しい分類フォルダが<br>画面の選択肢に出ない</td>
+    <td>アプリを再起動する。選択肢は画面組み立て時に1回だけ読み込みます</td>
+  </tr>
+  <tr>
+    <td class="nw">コードを直したのに<br>検索結果が変わらない</td>
+    <td>抽出バージョンを上げたか確認する（→ 4.1）。
+        暫定的には <code>pipeline.py rebuild</code> でも解消しますが数分かかります</td>
+  </tr>
+  <tr>
+    <td class="nw">外部データが<br>「未連携」のまま</td>
+    <td>該当提供元のAPIキーが <code>.env</code> にあるか。
+        <code>pipeline.py status</code> の末尾に未設定のキーが出ます</td>
+  </tr>
+  <tr>
+    <td class="nw">回答が途中で切れる</td>
+    <td>思考が既定でONのモデルに切り替えていないか確認する。
+        通常はアプリが出力枠を自動で広げますが、
+        <code>.env</code> の <code>LLM_MAX_OUTPUT_TOKENS</code> を小さくしていると足りなくなります</td>
+  </tr>
+</table>
+
+</section>
+
+<footer>
+  HHグループ AI経営診断アプリ 説明資料／2026年8月16日<br>
+  より詳しい開発者向けの記述は <code>doc/開発者マニュアル.html</code>、
+  業務担当者向けの操作手順は <code>doc/利用者マニュアル.html</code> にあります。
+</footer>
+
+</div>
+</body>
+</html>
