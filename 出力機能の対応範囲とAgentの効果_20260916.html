@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>出力機能の対応範囲と Agent の効果</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root{--ink:#1c1c1e;--muted:#5b5f66;--line:#e3e5e8;--soft:#f6f7f9;--card:#fff;--bg:#fff;--brand:#1f3a5f;--brand-soft:#eef3fa;--ok:#1f7a4d;--ok-bg:#eef7f1;--warn:#8a6b1f;--warn-bg:#fdf6e3;--no:#a3232f;--no-bg:#fdeff0;color-scheme:light}
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ink:#e9e6e3;--muted:#a6a3a0;--line:#3a3a3d;--soft:#232326;--card:#1c1c1f;--bg:#151517;--brand:#9cbbe6;--brand-soft:#1c2533;--ok:#7fd1a0;--ok-bg:#16291f;--warn:#e2bf6a;--warn-bg:#2d2616;--no:#ff6b7f;--no-bg:#33191d;color-scheme:dark}}
+  :root[data-theme="dark"]{--ink:#e9e6e3;--muted:#a6a3a0;--line:#3a3a3d;--soft:#232326;--card:#1c1c1f;--bg:#151517;--brand:#9cbbe6;--brand-soft:#1c2533;--ok:#7fd1a0;--ok-bg:#16291f;--warn:#e2bf6a;--warn-bg:#2d2616;--no:#ff6b7f;--no-bg:#33191d;color-scheme:dark}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.7 "Noto Sans JP",-apple-system,"Hiragino Sans","Yu Gothic",sans-serif}
+  main{max-width:1120px;margin:0 auto;padding:36px 28px 56px}
+  h1{font-size:22px;font-weight:700;margin:0 0 4px;color:var(--brand)}
+  .meta{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .premise{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 22px}
+  @media (max-width:820px){.premise{grid-template-columns:1fr}}
+  .premise div{background:var(--brand-soft);border-left:4px solid var(--brand);border-radius:6px;padding:10px 14px;font-size:13.5px}
+  .premise b{display:block;margin-bottom:2px;color:var(--brand)}
+  .wrap{overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;text-align:left}
+  th{background:var(--soft);font-weight:700;white-space:nowrap}
+  td.f{white-space:nowrap;font-weight:700;background:var(--soft)}
+  td ul{margin:0;padding-left:16px}
+  td li{margin:2px 0}
+  .lv{display:inline-block;padding:0 8px;border-radius:10px;font-size:12px;font-weight:700;margin-bottom:4px}
+  .lv.ok{background:var(--ok-bg);color:var(--ok)}.lv.warn{background:var(--warn-bg);color:var(--warn)}.lv.no{background:var(--no-bg);color:var(--no)}
+  .common{margin-top:22px}
+  .common h2{font-size:16px;margin:0 0 8px;color:var(--brand)}
+  .src{font-size:12px;color:var(--muted);margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+<h1>出力機能の対応範囲と Agent の効果</h1>
+<div class="meta">AI経営ナビアプリ／2026-09-16／前提：Amazon Bedrock（東京・Claude Opus 4.8）、Agent なし（1往復でアプリが処理を確定）</div>
+
+<div class="premise">
+  <div><b>現在の仕組み（Agent なし）</b>利用者の文面から出力の種類をアプリが規則で決め、AI は「表の値」「グラフの仕様」「図の要素と関係」の整理を1回だけ行う。描画・ファイル化はアプリの固定処理。AI が結果を見直したり、道具を呼んだりする工程は無い。</div>
+  <div><b>Agent がある場合</b>AI が出力結果を確認し、修正・再試行・追加の検索を自律的に繰り返す構成。クライアントのリスク整理では「外部送信の判断を AI に委ねない」が条件のため、Agent を入れる場合も道具は Bedrock 内で閉じたもの（ファイル生成・社内検索）に限る。</div>
+</div>
+
+<div class="wrap"><table>
+<tr><th style="width:11%">機能</th><th style="width:29%">現在の仕様でできること</th><th style="width:30%">Agent なしの限界</th><th style="width:30%">Agent があるとプラスになる点</th></tr>
+
+<tr><td class="f">1. Word／PDF 出力</td>
+<td><span class="lv ok">対応済み</span><ul>
+<li>直前の回答（Markdown）を見出し・箇条書き・表・太字ごと変換。AI を呼ばず即時</li>
+<li>PDF は日本語フォント埋め込み。「〜を整理して Word にして」の一括依頼も可</li></ul></td>
+<td><ul>
+<li>体裁は固定テンプレ1種（社内様式・目次・図の差し込みなし）</li>
+<li>内容の点検なし。回答の誤りや不足はそのまま文書に入る</li>
+<li>変換に失敗すると通知のみ。修正は人が再依頼</li></ul></td>
+<td><ul>
+<li>出力前の自己点検（数値と出典の照合、体裁の乱れ）と自動修正</li>
+<li>社内テンプレの適用、複数案の作成と選択を対話で反復</li>
+<li>失敗時の自動リトライ</li></ul></td></tr>
+
+<tr><td class="f">2. Excel／CSV 出力</td>
+<td><span class="lv ok">対応済み</span><ul>
+<li>回答内の表はそのまま、無ければ AI が1回で表に整理し、アプリが xlsx／csv を生成</li>
+<li>数値は数値型、CSV は Excel で文字化けしない形式</li></ul></td>
+<td><ul>
+<li>1表・1シートのみ。数式・書式・集計列は付かない</li>
+<li>AI の整理が回答文と食い違っても検出しない（確認は人）</li>
+<li>JSON 不正は1回だけ再試行し、だめなら通知で終了</li></ul></td>
+<td><ul>
+<li>生成後に元の回答・資料と突合し、差異を自動修正</li>
+<li>複数シート、集計・検算列、既存 Excel への追記</li>
+<li>不足データを社内資料から追加検索して補完</li></ul></td></tr>
+
+<tr><td class="f">3. グラフ描画</td>
+<td><span class="lv ok">対応済み</span><ul>
+<li>7種類（縦棒・横棒・積み上げ・折れ線・面・円・散布）。文面の指定が無ければ AI が内容から選択</li>
+<li>AI は軸と系列の仕様だけを作り、アプリが描画（PNG）。数値が無ければその旨を通知</li></ul></td>
+<td><ul>
+<li>種類は固定。2軸・複合グラフ・ヒートマップは不可</li>
+<li>単位の混在やスケールの妥当性を検証しない</li>
+<li>ラベルの重なり等は描画結果を見て人が再依頼</li></ul></td>
+<td><ul>
+<li>描いた画像を AI が確認し、重なり・スケール・種類を自動で直す</li>
+<li>複数の見せ方を比較提示</li>
+<li>データ不足時に社内データを検索して系列を補う</li></ul></td></tr>
+
+<tr><td class="f">4. PPTX ポンチ絵／Mermaid</td>
+<td><span class="lv ok">対応済み</span><ul>
+<li>AI が要素と関係を整理し、アプリが配置・作図。PPTX は PowerPoint で編集可、Mermaid はコード・.mmd・PNG</li>
+<li>流れ図（左→右）・関係図・階層図の3型。要素12・関係20まで</li></ul></td>
+<td><ul>
+<li>自動配置のため線の交差や重なりが残ることがある</li>
+<li>1枚のみ。複数スライド・社内テンプレ・アイコンは不可。Mermaid は flowchart のみ</li>
+<li>要素の抜け・関係の誤りは点検しない</li></ul></td>
+<td><ul>
+<li>配置を見て再レイアウト、複数スライドの構成、テンプレ適用</li>
+<li>回答との整合（要素の抜け）を点検して補正</li>
+<li>シーケンス図・ガントなど Mermaid の種類を内容に応じて選択</li></ul></td></tr>
+
+<tr><td class="f">5. 画像生成</td>
+<td><span class="lv no">未対応</span><ul>
+<li>Claude は画像を生成しない。Bedrock の画像モデル（Amazon Nova Canvas＝東京在庫あり・旧世代で EOL 2026-09-30 予定／Stability AI＝東京提供は要確認）を別経路（bedrock-runtime＋IAM）で追加すれば可</li>
+<li>GPT Image 2 は Bedrock 非対応。同等品質は Bedrock の外になる</li></ul></td>
+<td><ul>
+<li>実装しても「プロンプト1回→1枚」。出来栄えの判定と再生成は人</li>
+<li>日本語文字入りの図版は精度が低い</li></ul></td>
+<td><ul>
+<li>生成→評価→プロンプト修正の反復、複数案の比較</li>
+<li>ただし品質の上限はモデル依存で、Agent では埋まらない</li></ul></td></tr>
+</table></div>
+
+<div class="common">
+<h2>共通</h2>
+<div class="wrap"><table>
+<tr><th style="width:11%">観点</th><th style="width:44%">Agent なし（現在）</th><th>Agent あり</th></tr>
+<tr><td class="f">品質チェック</td><td>行わない。出力ファイルは回答の原文どおり。確認は利用者</td><td>AI が出力を読み返して自己点検・修正。ただし検証の基準（正解データ）が無い項目は限界が残る</td></tr>
+<tr><td class="f">エラー対応</td><td>失敗はエラー通知（原因つき）で終わり、再依頼は人。JSON 不正のみ1回自動再試行</td><td>原因に応じて依頼を言い換え・分割して自動リトライ</td></tr>
+<tr><td class="f">安全性</td><td>AI が決めるのは中身の整理だけ。外部送信・実行は無く、リスク整理どおり</td><td>道具の呼び出しが増えるぶん、道具を Bedrock 内・社内に限定し、実行回数を上限で縛る設計が必要</td></tr>
+<tr><td class="f">応答時間・費用</td><td>1往復（Word／PDF は AI 呼び出しなし、他は AI 1回）</td><td>反復のぶん時間と Token が数倍になる</td></tr>
+</table></div>
+</div>
+<div class="src">出典：Bedrock の画像モデルは AWS モデルカタログ（2026-09）、GPT Image 2 の Bedrock 非対応は OpenAI 公式「OpenAI models in Amazon Bedrock」。</div>
+</main>
+</body>
+</html>
