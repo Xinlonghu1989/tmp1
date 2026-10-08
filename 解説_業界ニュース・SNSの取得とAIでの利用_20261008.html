@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>業界ニュース・SNSの取得とAIでの利用</title>
+<style>
+  :root{
+    --ink:#1c1c1e; --muted:#5b5f66; --faint:#8a8f97;
+    --line:#e3e5e8; --bg:#fff; --soft:#f6f8fa;
+    --brand:#0b5688; --brand-soft:#eef5fb;
+    --news:#0b5688; --news-bg:#eef5fb;
+    --sns:#7a3e9d; --sns-bg:#f5eefa;
+    --trend:#2f6b4f; --trend-bg:#eef6f1;
+    --live:#a5532a; --live-bg:#fbf1ea;
+    --mono:"SF Mono",Menlo,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,system-ui,sans-serif;
+    font-size:14px;line-height:1.85;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding:44px 28px 96px}
+  header.cover{border-bottom:3px solid var(--brand);padding-bottom:20px;margin-bottom:28px}
+  header.cover .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--brand);font-weight:700}
+  header.cover h1{font-size:26px;margin:8px 0 6px}
+  header.cover p{margin:0;color:var(--muted);font-size:13px}
+  h2{font-size:20px;margin:52px 0 8px;padding-top:22px;border-top:1px solid var(--line)}
+  h2 .num{display:inline-block;min-width:30px;height:30px;line-height:30px;text-align:center;
+    background:var(--brand);color:#fff;border-radius:8px;font-size:14px;margin-right:10px}
+  h3{font-size:16px;margin:30px 0 8px;color:var(--brand)}
+  p{margin:8px 0}
+  ul,ol{margin:8px 0 8px 1.4em;padding:0} li{margin:4px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:700}
+  td.nw,th.nw{white-space:nowrap}
+  td code{overflow-wrap:anywhere}
+  code{background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px;font-family:var(--mono)}
+  .toc{background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:16px 22px;margin:0 0 8px}
+  .toc b{display:block;margin-bottom:4px}
+  .toc ol{margin:0 0 0 1.2em}
+  .toc a{color:var(--ink);text-decoration:none} .toc a:hover{color:var(--brand);text-decoration:underline}
+  .answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+  .answer{border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:0 10px 10px 0;padding:12px 16px;background:#fff}
+  .answer .q{font-size:12.5px;color:var(--muted);font-weight:700}
+  .answer .a{font-size:15px;font-weight:700;margin:4px 0 6px}
+  .answer p{font-size:13px;margin:4px 0}
+  .note{border-radius:9px;padding:12px 16px;margin:14px 0;font-size:13px;background:var(--soft);border:1px solid var(--line)}
+  .note b{display:block;margin-bottom:2px}
+  .tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 9px;margin-right:4px}
+  .tag.news{background:var(--news-bg);color:var(--news)} .tag.sns{background:var(--sns-bg);color:var(--sns)}
+  .tag.trend{background:var(--trend-bg);color:var(--trend)} .tag.live{background:var(--live-bg);color:var(--live)}
+  figure{margin:18px 0 8px;overflow-x:auto}
+  figure svg{display:block;width:100%;min-width:760px;height:auto}
+  figcaption{font-size:12px;color:var(--faint);margin-top:6px;text-align:center}
+  footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);color:var(--faint);font-size:12px}
+  /* 図 */
+  .svg-t{font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,system-ui,sans-serif;fill:#1c1c1e}
+  @media (max-width:760px){
+    .wrap{padding:28px 16px 64px} .answers{grid-template-columns:1fr} td.nw,th.nw{white-space:normal}
+    header.cover h1{font-size:22px}
+  }
+  @media print{ .wrap{max-width:none;padding:0} h2{page-break-before:always;border-top:0} figure svg{min-width:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <div class="eyebrow">HANKYU HANSHIN GROUP ／ AI経営ナビ</div>
+  <h1>業界ニュース・SNSの取得とAIでの利用</h1>
+  <p>ホームの「業界ニュース」「SNS分析」のデータがどう取得・保存され、AIでどう使われるか。あわせて、AIとの壁打ちが質問のたびに読みに行く外部サイトの仕組み。2026年10月8日時点のコード（gradio_app_1007）と保存データで確認した内容です。</p>
+</header>
+
+<nav class="toc" aria-label="目次">
+  <b>目次</b>
+  <ol>
+    <li><a href="#s0">要点（4つの問いへの答え）</a></li>
+    <li><a href="#s1">全体の構成</a></li>
+    <li><a href="#s2">業界ニュースの処理の流れ</a></li>
+    <li><a href="#s3">SNS分析の処理の流れ</a></li>
+    <li><a href="#s4">取得サイクルと保存期間</a></li>
+    <li><a href="#s5">取得したニュースをAIの回答に使う処理</a></li>
+    <li><a href="#s6">AIとの壁打ちが質問のたびに読む外部サイト</a></li>
+    <li><a href="#s7">コード上の場所（開発者向け）</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="s0"><span class="num">0</span>要点（4つの問いへの答え）</h2>
+
+<div class="answers">
+  <div class="answer">
+    <div class="q">Q1．ホームの業界ニュース・SNSは、どういう処理の流れか</div>
+    <div class="a">定刻に裏で取得して保存し、画面は保存済みのデータを読むだけ</div>
+    <p><span class="tag news">業界ニュース</span>Bing ニュースの RSS を60本の検索語で取り、直近14日の見出しを保存。ホームは6事業×3件を7秒ごとに切り替えて表示。</p>
+    <p><span class="tag sns">SNS</span>Yahoo!リアルタイム検索から、テーマごとの<b>投稿数（全数）</b>と投稿の標本（70本×直近40件）を取る。標本をAIが判定してネガ率を出し、ネガティブ投稿数を<b>推定</b>（投稿数×ネガ率）。</p>
+  </div>
+  <div class="answer">
+    <div class="q">Q2．取得サイクルと保存期間は</div>
+    <div class="a">6時間ごと（日本時間 0:05・6:05・12:05・18:05）。蓄積は期限なし</div>
+    <p>業界ニュースとSNSは同じ回で取得。取れなかった回は、次の回かアプリを開いたときに取り直す（同じ取得元は30分に1回まで）。</p>
+    <p>画面用の「最新」は毎回置き換え。ニュースの蓄積（約1.6万件。同じ記事の重複を含む）・SNSの投稿（約7.5万件）と日別の投稿数は<b>期限なしで蓄積</b>。ただしアプリが読むのは、ニュースは直近365日、SNSの投稿は直近74日だけ。</p>
+  </div>
+  <div class="answer">
+    <div class="q">Q3．取得したニュースをもとにAIチャットで回答を生成する処理はあるか</div>
+    <div class="a">ある。ただし渡すのは「見出し」だけで、記事の本文は読まない</div>
+    <p>AIとの壁打ちは、ニュースの蓄積（直近365日）と企業巡回の見出しから<b>質問の語が題に当たるものだけ</b>を最大12件、「社外の発表（見出しのみ）」として渡す。関係が無ければ渡さない。</p>
+    <p>ほかにピックアップ（AIの要約）・計画系5機能・総会QAの質問提案もニュースの見出しを材料にする。</p>
+  </div>
+  <div class="answer">
+    <div class="q">Q4．AIとの壁打ちが、その都度取得している外部サイトの状況</div>
+    <div class="a">必要とAIが判断した質問だけ、登録済みの222サイトから選んで読む</div>
+    <p>検索エンジンは使わず、AIは候補から選ぶだけ（URLは書かない）。既定のディープモードで最大50サイト・180秒。読んだページは出典URL付きで根拠欄に出る。</p>
+    <p>社内資料と事前に貯めたデータで足りる質問では外へ出ない。読むときは robots.txt を守り、読めなかったサイトは根拠欄に明示して、回答では「確認できなかった」と書かせる。読んだ本文は24時間使い回すだけで、ほかの機能の材料にはしない。</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s1"><span class="num">1</span>全体の構成</h2>
+
+<p>外部のデータは<b>2通り</b>で使います。<b>(a) 事前に定期取得して貯めるデータ</b>（業界ニュース・SNSなど。画面とAIは保存済みのものを読む）と、<b>(b) 質問のときにその場で読む外部サイト</b>（AIとの壁打ちが必要と判断したときだけ）です。</p>
+
+<figure>
+<svg viewBox="0 0 1040 610" role="img" aria-label="業界ニュース・SNS・SNS注目度・会話中の外部取得の全体構成図">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker>
+  </defs>
+  <g class="svg-t" font-size="13" font-weight="700" fill="#5b5f66">
+    <text x="126" y="26" text-anchor="middle">① 外部の取得元</text>
+    <text x="385" y="26" text-anchor="middle">② 取得（定期実行）</text>
+    <text x="649" y="26" text-anchor="middle">③ 保存（data_external）</text>
+    <text x="911" y="26" text-anchor="middle">④ 画面・AIで使う</text>
+  </g>
+
+  <!-- 行A：業界ニュース -->
+  <g>
+    <rect x="16" y="44" width="220" height="118" rx="10" fill="#eef5fb" stroke="#0b5688"/>
+    <text class="svg-t" font-size="13" x="30" y="68" font-weight="700" fill="#0b5688">業界ニュース</text>
+    <text class="svg-t" font-size="12.5" x="30" y="90">Bing ニュース RSS</text>
+    <text class="svg-t" font-size="12.5" x="30" y="110">検索語60本</text>
+    <text class="svg-t" font-size="12.5" x="30" y="130">（6事業28語・20社32語）</text>
+    <text class="svg-t" font-size="12" x="30" y="150" fill="#5b5f66">APIキー不要</text>
+
+    <rect x="270" y="44" width="230" height="118" rx="10" fill="#fff" stroke="#0b5688"/>
+    <text class="svg-t" font-size="13" x="284" y="68" font-weight="700">ニュースの取得</text>
+    <text class="svg-t" font-size="12.5" x="284" y="90">6時間ごと</text>
+    <text class="svg-t" font-size="12.5" x="284" y="110">0:05・6:05・12:05・18:05</text>
+    <text class="svg-t" font-size="12.5" x="284" y="130">直近14日・1本5件まで</text>
+    <text class="svg-t" font-size="12" x="284" y="150" fill="#5b5f66">見出し・抜粋・配信元・掲載日</text>
+
+    <rect x="534" y="44" width="230" height="118" rx="10" fill="#fff" stroke="#0b5688"/>
+    <text class="svg-t" font-size="12.5" x="548" y="68" font-weight="700">news_latest.json</text>
+    <text class="svg-t" font-size="12.5" x="548" y="88">毎回置き換え（233件）</text>
+    <text class="svg-t" font-size="12.5" x="548" y="116" font-weight="700">news_archive.json</text>
+    <text class="svg-t" font-size="12.5" x="548" y="136">蓄積・期限なし</text>
+    <text class="svg-t" font-size="12" x="548" y="154" fill="#5b5f66">（15,769件。別の記事は約3,200）</text>
+
+    <rect x="798" y="44" width="226" height="118" rx="10" fill="#fff" stroke="#0b5688"/>
+    <text class="svg-t" font-size="12.5" x="812" y="68">ホーム「業界ニュース」</text>
+    <text class="svg-t" font-size="12.5" x="812" y="90">ピックアップ（競合の動き）</text>
+    <text class="svg-t" font-size="12.5" x="812" y="112">AIとの壁打ち（見出し）</text>
+    <text class="svg-t" font-size="12.5" x="812" y="134">計画系5機能（見出し）</text>
+    <text class="svg-t" font-size="12.5" x="812" y="156">総会QAの質問提案</text>
+  </g>
+
+  <!-- 行B：SNS -->
+  <g>
+    <rect x="16" y="186" width="220" height="140" rx="10" fill="#f5eefa" stroke="#7a3e9d"/>
+    <text class="svg-t" font-size="13" x="30" y="210" font-weight="700" fill="#7a3e9d">SNS（X の投稿）</text>
+    <text class="svg-t" font-size="12.5" x="30" y="232">Yahoo!リアルタイム検索</text>
+    <text class="svg-t" font-size="12.5" x="30" y="252">・検索結果 70本×直近40件</text>
+    <text class="svg-t" font-size="12.5" x="30" y="272">・投稿数の推移 63本（既定）</text>
+    <text class="svg-t" font-size="12.5" x="30" y="292">　（約30日さかのぼれる）</text>
+    <text class="svg-t" font-size="12" x="30" y="314" fill="#5b5f66">X の API は使わない</text>
+
+    <rect x="270" y="186" width="230" height="140" rx="10" fill="#fff" stroke="#7a3e9d"/>
+    <text class="svg-t" font-size="13" x="284" y="210" font-weight="700">SNSの取得と判定</text>
+    <text class="svg-t" font-size="12.5" x="284" y="232">6時間ごと（ニュースと同じ回）</text>
+    <text class="svg-t" font-size="12.5" x="284" y="252">標本・投稿数を取る</text>
+    <text class="svg-t" font-size="12.5" x="284" y="272">新しい投稿だけAIが判定</text>
+    <text class="svg-t" font-size="12.5" x="284" y="292">（肯定・否定・中立）</text>
+    <text class="svg-t" font-size="12" x="284" y="314" fill="#5b5f66">盛り上がり・火種を集計</text>
+
+    <rect x="534" y="186" width="230" height="140" rx="10" fill="#fff" stroke="#7a3e9d"/>
+    <text class="svg-t" font-size="12.5" x="548" y="210" font-weight="700">posts_archive.json</text>
+    <text class="svg-t" font-size="12.5" x="548" y="230">投稿の標本・期限なし</text>
+    <text class="svg-t" font-size="12.5" x="548" y="256" font-weight="700">volume_daily.json</text>
+    <text class="svg-t" font-size="12.5" x="548" y="276">日別の投稿数・期限なし</text>
+    <text class="svg-t" font-size="12.5" x="548" y="302" font-weight="700">post_labels.json</text>
+    <text class="svg-t" font-size="12" x="548" y="320" fill="#5b5f66">AIの判定（同じ投稿は再判定しない）</text>
+
+    <rect x="798" y="186" width="226" height="140" rx="10" fill="#fff" stroke="#7a3e9d"/>
+    <text class="svg-t" font-size="12.5" x="812" y="210">ホーム「SNS分析」</text>
+    <text class="svg-t" font-size="12.5" x="812" y="232">センシングボードのSNS分析</text>
+    <text class="svg-t" font-size="12.5" x="812" y="254">ピックアップ</text>
+    <text class="svg-t" font-size="12.5" x="812" y="276">AIとの壁打ち</text>
+    <text class="svg-t" font-size="12" x="812" y="294" fill="#5b5f66">（SNS・評判・話題の問いだけ）</text>
+    <text class="svg-t" font-size="12.5" x="812" y="316">総会QAの質問提案</text>
+  </g>
+
+  <!-- 行C：SNS注目度 -->
+  <g>
+    <rect x="16" y="350" width="220" height="96" rx="10" fill="#eef6f1" stroke="#2f6b4f"/>
+    <text class="svg-t" font-size="13" x="30" y="374" font-weight="700" fill="#2f6b4f">SNS注目度</text>
+    <text class="svg-t" font-size="12.5" x="30" y="396">Googleトレンド</text>
+    <text class="svg-t" font-size="12.5" x="30" y="416">Wikipedia の閲覧数</text>
+    <text class="svg-t" font-size="12.5" x="30" y="436">Googleニュースの記事数</text>
+
+    <rect x="270" y="350" width="230" height="96" rx="10" fill="#fff" stroke="#2f6b4f"/>
+    <text class="svg-t" font-size="13" x="284" y="374" font-weight="700">注目度の取得</text>
+    <text class="svg-t" font-size="12.5" x="284" y="396">日次（毎日 0:05）</text>
+    <text class="svg-t" font-size="12.5" x="284" y="416">トレンド：阪急阪神ほか5語</text>
+    <text class="svg-t" font-size="12.5" x="284" y="436">閲覧数・記事数：阪急阪神</text>
+
+    <rect x="534" y="350" width="230" height="96" rx="10" fill="#fff" stroke="#2f6b4f"/>
+    <text class="svg-t" font-size="12.5" x="548" y="374" font-weight="700">sns_trends.csv</text>
+    <text class="svg-t" font-size="12.5" x="548" y="396">トレンド・閲覧数は置き換え</text>
+    <text class="svg-t" font-size="12.5" x="548" y="416">記事数は足し込み</text>
+    <text class="svg-t" font-size="12.5" x="548" y="436">sns_latest.json</text>
+
+    <rect x="798" y="350" width="226" height="96" rx="10" fill="#fff" stroke="#2f6b4f"/>
+    <text class="svg-t" font-size="12.5" x="812" y="374">データ管理（公開データ）</text>
+    <text class="svg-t" font-size="12.5" x="812" y="396">AIの推移の集計</text>
+    <text class="svg-t" font-size="12" x="812" y="414" fill="#5b5f66">（名前を挙げて訊いたとき）</text>
+    <text class="svg-t" font-size="12" x="812" y="434" fill="#5b5f66">総会QAは見出しの話題だけ使う</text>
+  </g>
+
+  <!-- 行D：会話中にその場で読む -->
+  <g>
+    <rect x="16" y="474" width="220" height="118" rx="10" fill="#fbf1ea" stroke="#a5532a" stroke-dasharray="6 4"/>
+    <text class="svg-t" font-size="13" x="30" y="498" font-weight="700" fill="#a5532a">登録済みの外部サイト</text>
+    <text class="svg-t" font-size="12.5" x="30" y="520">外部情報カタログ 222件</text>
+    <text class="svg-t" font-size="12.5" x="30" y="540">外部情報28・競合66・</text>
+    <text class="svg-t" font-size="12.5" x="30" y="560">グループ会社128</text>
+    <text class="svg-t" font-size="12" x="30" y="580" fill="#5b5f66">＋ EDINET の提出書類一覧</text>
+
+    <rect x="270" y="474" width="230" height="118" rx="10" fill="#fff" stroke="#a5532a" stroke-dasharray="6 4"/>
+    <text class="svg-t" font-size="13" x="284" y="498" font-weight="700">外部情報の確認</text>
+    <text class="svg-t" font-size="12.5" x="284" y="520">質問のときだけ</text>
+    <text class="svg-t" font-size="12.5" x="284" y="540">要ると判断した回だけ</text>
+    <text class="svg-t" font-size="12.5" x="284" y="560">AIは候補から選ぶだけ</text>
+    <text class="svg-t" font-size="12" x="284" y="580" fill="#5b5f66">検索エンジンは使わない</text>
+
+    <rect x="534" y="474" width="230" height="118" rx="10" fill="#fff" stroke="#a5532a" stroke-dasharray="6 4"/>
+    <text class="svg-t" font-size="12.5" x="548" y="498" font-weight="700">external_cache</text>
+    <text class="svg-t" font-size="12.5" x="548" y="520">読んだ本文を24時間使い回す</text>
+    <text class="svg-t" font-size="12.5" x="548" y="546" font-weight="700">回答の材料にだけ使う</text>
+    <text class="svg-t" font-size="12" x="548" y="566" fill="#5b5f66">（期限切れのファイルも残る）</text>
+
+    <rect x="798" y="474" width="226" height="118" rx="10" fill="#fff" stroke="#a5532a" stroke-dasharray="6 4"/>
+    <text class="svg-t" font-size="12.5" x="812" y="498">AIとの壁打ち（経営ナビ）</text>
+    <text class="svg-t" font-size="12.5" x="812" y="520">総会QAのAI壁打ち</text>
+    <text class="svg-t" font-size="12.5" x="812" y="546" font-weight="700">回答の根拠欄に</text>
+    <text class="svg-t" font-size="12" x="812" y="566" fill="#5b5f66">出典URL・読めなかったサイト</text>
+  </g>
+
+  <!-- 矢印（事前取得：左→右） -->
+  <g stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+    <line x1="236" y1="103" x2="268" y2="103"/><line x1="500" y1="103" x2="532" y2="103"/><line x1="764" y1="103" x2="796" y2="103"/>
+    <line x1="236" y1="256" x2="268" y2="256"/><line x1="500" y1="256" x2="532" y2="256"/><line x1="764" y1="256" x2="796" y2="256"/>
+    <line x1="236" y1="398" x2="268" y2="398"/><line x1="500" y1="398" x2="532" y2="398"/><line x1="764" y1="398" x2="796" y2="398"/>
+  </g>
+  <!-- 矢印（その場で読む：質問→取りに行く→回答） -->
+  <g stroke="#a5532a" stroke-width="1.6" fill="none" stroke-dasharray="5 4">
+    <path d="M911,474 L911,462 L385,462 L385,472" marker-end="url(#ar)"/>
+    <path d="M268,520 L238,520" marker-end="url(#ar)"/>
+    <path d="M238,556 L268,556" marker-end="url(#ar)"/>
+    <path d="M500,556 L532,556" marker-end="url(#ar)"/>
+    <path d="M764,556 L796,556" marker-end="url(#ar)"/>
+  </g>
+  <text class="svg-t" font-size="11.5" x="649" y="457" text-anchor="middle" fill="#a5532a">質問（必要と判断したときだけ）</text>
+</svg>
+<figcaption>図1 全体の構成。上の3段は事前に定期取得して貯めるデータ（実線）、下の段は質問のときにその場で読む外部サイト（点線）。件数は2026-10-07 時点の保存データ。</figcaption>
+</figure>
+
+<!-- ============================================================ -->
+<h2 id="s2"><span class="num">2</span>業界ニュースの処理の流れ</h2>
+
+<ol>
+  <li><b>取得</b>：Bing ニュースの RSS を<b>60本</b>の検索語で取る。事業ごとの業界の語（6事業・28語）と、各社の名前（20社・32語）。1本ずつ0.3秒あけて順に読み、APIキーは要らない。</li>
+  <li><b>絞り込み</b>：掲載日が<b>14日前</b>より古い記事（と日付の読めない記事）は捨て、1本あたり新しい順に<b>5件</b>まで。同じ記事はリンクで1件にまとめる作りだが、実際にはまとまらないことが多い（下の注）。</li>
+  <li><b>保存</b>：画面用の <code>news_latest.json</code> を<b>毎回置き換え</b>（いま233件）、あわせて <code>news_archive.json</code> に<b>足し込む</b>（期限なし。いま15,769件、2026-08-14 以降の掲載分）。<br>
+      全部の配信元で取得に失敗した回（回線断など）は書き込まず、前の一覧を出し続ける（2026-10-07 の改修）。</li>
+  <li><b>ホームの表示</b>：表示そのものは通信せず、保存済みの <code>news_latest.json</code> を読む（取得が遅れているときは、開いたときに裏で取り直す。§4）。事業の検索語で取った記事だけを使い、事業ごとに新しい順で最大3件、<b>6事業×3件</b>を1事業ずつ<b>7秒ごと</b>に切り替える（マウスを載せている間は止まる。事業名のチップで切り替えも可）。見出し・書き出し（Bing の抜粋を140字まで）・配信元・掲載日を出し、見出しから記事へ飛べる。見出し・配信元に成人向けの語を含む記事は除く。記事が1件も無いときは、見本の記事を「サンプル表示」の札つきで出す。</li>
+</ol>
+
+<div class="note"><b>注：同じ記事の重複</b>Bing のリンクには取得のたびに変わる値（<code>tid</code>）が付くため、リンクで重複を除く処理が効かず、前の回に取った記事も次の回で別の記事として蓄積に足されます。2026-10-07 時点で、蓄積の15,769件のうち別の記事は3,213件です（1つの記事が最大57件。ほぼ5倍）。蓄積は1日に約450件増え、うち新しい記事は約86件です。画面用の一覧でも、別の検索語で同じ記事を拾うと2件になることがあります（233件中10件。同じ事業の中で同じ記事が2回出ることもある）。AIに渡す見出しは同じ題を1つにまとめてから選ぶので、AIには重複して渡りません。</div>
+
+<table>
+  <tr><th class="nw">事業</th><th>検索語（Bing ニュース）</th></tr>
+  <tr><td>都市交通</td><td>鉄道業界／私鉄 運賃改定／関西 鉄道 運転見合わせ／輸送障害 鉄道／バス 運転士不足</td></tr>
+  <tr><td>不動産</td><td>梅田 再開発／うめきた 開発／大阪 オフィスビル 賃料／関西 マンション 市況／不動産市況 地価／三菱地所 三井不動産</td></tr>
+  <tr><td>エンタテインメント</td><td>ライブ エンタメ 市場／劇場 公演 観客動員／プロ野球 観客動員／スポーツビジネス</td></tr>
+  <tr><td>情報・通信</td><td>情報サービス業界／関西 データセンター 投資／生成AI 企業 導入／NTTデータ 関西</td></tr>
+  <tr><td>旅行</td><td>旅行業界／訪日客 関西／インバウンド 観光 関西／旅行 大手 JTB HIS／欠航 関西空港</td></tr>
+  <tr><td>国際輸送</td><td>物流業界／航空貨物／国際物流 日本／日本通運 物流</td></tr>
+  <tr><td>各社（20社）</td><td>阪急阪神HD・東急・JR東日本・京阪HD・近鉄GHD・三菱地所・三井不動産・東急不動産・野村不動産・DeNA・オリックス・東宝・NTTデータ・SCSK・JCOM・JTB・HIS・近ツー・日本通運・近鉄EXP（各社の記事は、自社の阪急阪神HDを除いて「競合の動き」としてピックアップの材料に使う）</td></tr>
+</table>
+<p style="font-size:12.5px;color:var(--muted)">検索語は <code>collectors/config.json</code> の <code>targets.news_rss</code> で変えられます。</p>
+
+<!-- ============================================================ -->
+<h2 id="s3"><span class="num">3</span>SNS分析の処理の流れ</h2>
+
+<div class="note" style="background:var(--sns-bg);border-color:#e2d3ee"><b style="color:var(--sns)">要点：投稿数は推定ではなく「全数」。推定しているのはネガティブ投稿数だけ</b>テーマ（事業・路線など）ごとの<b>投稿数</b>は、Yahoo!リアルタイム検索が返す「検索に一致した全投稿の数」をそのまま使います。投稿の中身を読む<b>標本</b>（検索結果の一部）は、件数を数えるためではなく、<b>ネガティブの割合（ネガ率）</b>を出すためだけに使います。<br><b>ネガティブ投稿数（推定）＝ 投稿数（全数）× 標本のネガ率</b></div>
+
+<figure>
+<svg viewBox="0 0 1040 262" role="img" aria-label="SNS分析の投稿数とネガティブ投稿数の出し方">
+  <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+  <g class="svg-t" font-size="12.5" font-weight="700" fill="#7a3e9d">
+    <text x="16" y="20">① 投稿数：推定ではなく全数を取る</text>
+    <text x="16" y="150">② 標本：投稿の中身を AI が読んで、ネガ率を出す</text>
+  </g>
+  <!-- 行1 -->
+  <rect x="16" y="30" width="230" height="84" rx="10" fill="#f5eefa" stroke="#7a3e9d"/>
+  <text class="svg-t" font-size="12.5" x="30" y="56">Yahoo!リアルタイム検索の</text>
+  <text class="svg-t" font-size="12.5" x="30" y="78" font-weight="700">「投稿数の推移」</text>
+  <text class="svg-t" font-size="12" x="30" y="100" fill="#5b5f66">検索に一致した全投稿の数</text>
+  <rect x="280" y="30" width="230" height="84" rx="10" fill="#fff" stroke="#7a3e9d"/>
+  <text class="svg-t" font-size="12.5" x="294" y="56">テーマの検索語ごとに数える</text>
+  <text class="svg-t" font-size="12" x="294" y="78" fill="#5b5f66">例：阪急電鉄＝阪急電鉄・</text>
+  <text class="svg-t" font-size="12" x="294" y="98" fill="#5b5f66">阪急電車・阪急線 など8語</text>
+  <rect x="544" y="30" width="230" height="84" rx="10" fill="#fff" stroke="#7a3e9d"/>
+  <text class="svg-t" font-size="12.5" x="558" y="56">日ごとに足す</text>
+  <text class="svg-t" font-size="12.5" x="558" y="78" font-weight="700">＝ テーマの投稿数</text>
+  <text class="svg-t" font-size="12" x="558" y="100" fill="#5b5f66">例：10/2 は 803件</text>
+  <!-- 行2 -->
+  <rect x="16" y="160" width="230" height="84" rx="10" fill="#f5eefa" stroke="#7a3e9d"/>
+  <text class="svg-t" font-size="12.5" x="30" y="186">検索結果の直近40件</text>
+  <text class="svg-t" font-size="12.5" x="30" y="208" font-weight="700">× 検索語70本</text>
+  <text class="svg-t" font-size="12" x="30" y="230" fill="#5b5f66">投稿の本文を取る（標本）</text>
+  <rect x="280" y="160" width="230" height="84" rx="10" fill="#fff" stroke="#7a3e9d"/>
+  <text class="svg-t" font-size="12.5" x="294" y="186">本文から、どのテーマの</text>
+  <text class="svg-t" font-size="12.5" x="294" y="208">投稿かを決める</text>
+  <text class="svg-t" font-size="12" x="294" y="230" fill="#5b5f66">（1件が複数のテーマのことも）</text>
+  <rect x="544" y="160" width="230" height="84" rx="10" fill="#fff" stroke="#7a3e9d"/>
+  <text class="svg-t" font-size="12.5" x="558" y="186">AI が 肯定・否定・中立 を判定</text>
+  <text class="svg-t" font-size="12.5" x="558" y="208" font-weight="700">＝ テーマ・日ごとのネガ率</text>
+  <text class="svg-t" font-size="12" x="558" y="230" fill="#5b5f66">例：10/2 は 466件中78件</text>
+  <!-- 推定 -->
+  <rect x="808" y="44" width="216" height="186" rx="10" fill="#fff" stroke="#7a3e9d" stroke-width="2"/>
+  <text class="svg-t" font-size="13" x="822" y="70" font-weight="700" fill="#7a3e9d">③ ネガティブ投稿数</text>
+  <text class="svg-t" font-size="13" x="822" y="90" font-weight="700" fill="#7a3e9d">（推定）</text>
+  <text class="svg-t" font-size="12.5" x="822" y="116">＝ ①投稿数 × ②ネガ率</text>
+  <text class="svg-t" font-size="12" x="822" y="142" fill="#5b5f66">例：10/2</text>
+  <text class="svg-t" font-size="12.5" x="822" y="162">803件 × 16.4% ＝ 132件</text>
+  <text class="svg-t" font-size="12" x="822" y="190" fill="#5b5f66">7日分を足して</text>
+  <text class="svg-t" font-size="12.5" x="822" y="210" font-weight="700">今週 287件</text>
+  <g stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#ar4)">
+    <line x1="246" y1="72" x2="278" y2="72"/><line x1="510" y1="72" x2="542" y2="72"/>
+    <line x1="246" y1="202" x2="278" y2="202"/><line x1="510" y1="202" x2="542" y2="202"/>
+    <path d="M774,72 L790,72 L790,104 L806,104"/>
+    <path d="M774,202 L790,202 L790,170 L806,170"/>
+  </g>
+</svg>
+<figcaption>図2 投稿数とネガティブ投稿数の出し方（例は阪急電鉄、2026-10-02）。①は全数、②は標本。②のネガ率を①に掛けてネガティブ投稿数を推定する。</figcaption>
+</figure>
+
+<h3>① 投稿数（全数）</h3>
+<ul>
+  <li>Yahoo!リアルタイム検索の「投稿数の推移」は、検索に一致した<b>全投稿の数</b>を時間別に返します。これを日ごとに足して <code>volume_daily.json</code> に貯めます（約30日しかさかのぼれないため、取るたびに足し込む）。</li>
+  <li>テーマの投稿数は、そのテーマの検索語ごとの件数の合計です（既定で26テーマ・63語。例：阪急電鉄は「阪急電鉄」「阪急電車」「阪急線」など8語）。1つの投稿が2つの語に当たると2件と数えるので、目安の数字です。</li>
+</ul>
+
+<h3>② 標本とAIの判定（ネガ率）</h3>
+<ul>
+  <li>検索結果から、検索語ごとに<b>直近40件</b>の投稿の本文を取ります（既定70本。管理者が「SNS分析の検索語」で足せる）。X の API は使いません。</li>
+  <li>本文に出てくる名前から、どのテーマの投稿かを決めます（取ってきた検索語ではなく、本文で決める）。関係の無い投稿・ノイズ・重複は除きます。</li>
+  <li>まだ判定していない投稿だけを AI（Claude）が 肯定・否定・中立 に分けます（同じ投稿は判定し直さない）。テーマ・日ごとに「判定した件数」と「うちネガティブの件数」を数え、ネガ率を出します。</li>
+  <li>標本が全数に占める割合はテーマで大きく違います（今週、阪急電鉄は約8割、阪神タイガースは約3%）。そのため件数は標本から推定せず、①の全数を使います。</li>
+</ul>
+
+<h3>③ ネガティブ投稿数の推定</h3>
+<p>日ごとに「①投稿数 × ②ネガ率」を出し、7日分を足して今週のネガティブ投稿数にします。ただし、その日の標本が少ないとネガ率がぶれるので、<b>その週のネガ率に寄せて補正</b>します。</p>
+<p style="text-align:center;font-weight:700">補正後のネガ率 ＝（その日のネガ件数 ＋ 20 × 週のネガ率）÷（その日の判定件数 ＋ 20）</p>
+<p>判定件数が多い日はその日の率に近く、少ない日は週の率に近くなります。例：阪急電鉄の 10/2 は、週のネガ率が 205÷2,217＝9.2% なので、（78 ＋ 20×9.2%）÷（466 ＋ 20）＝16.4%。推定は 803 × 16.4% ＝ 132件です。</p>
+
+<table>
+  <tr><th>阪急電鉄（今週）</th><th>① 投稿数（全数）</th><th>② AIが判定した標本</th><th>うちネガティブ</th><th>補正後のネガ率</th><th>推定ネガティブ（①×率）</th></tr>
+  <tr><td>9/30</td><td>301</td><td>210</td><td>18</td><td>8.6%</td><td>26</td></tr>
+  <tr><td>10/1</td><td>469</td><td>405</td><td>33</td><td>8.2%</td><td>38</td></tr>
+  <tr><td>10/2</td><td>803</td><td>466</td><td>78</td><td>16.4%</td><td>132</td></tr>
+  <tr><td>10/3</td><td>372</td><td>326</td><td>23</td><td>7.2%</td><td>27</td></tr>
+  <tr><td>10/4</td><td>328</td><td>266</td><td>18</td><td>6.9%</td><td>23</td></tr>
+  <tr><td>10/5</td><td>349</td><td>290</td><td>23</td><td>8.0%</td><td>28</td></tr>
+  <tr><td>10/6</td><td>266</td><td>254</td><td>12</td><td>5.1%</td><td>13</td></tr>
+  <tr><th>今週の計</th><th>2,888</th><th>2,217</th><th>205</th><th>（週のネガ率 9.2%）</th><th>287</th></tr>
+</table>
+<ul>
+  <li>「今週」は昨日までの7日、「前週」はその前の7日です（当日は途中なので使わない）。</li>
+  <li>「全体」のネガティブ投稿数は、テーマごとの推定を足したものです。</li>
+  <li>前提は「標本のネガ率が、全投稿でも同じ」こと。画面には「推定」と表示し、根拠（判定n件中ネガk件）も出します。</li>
+</ul>
+
+<h3>④ 盛り上がり・火種と表示</h3>
+<ul>
+  <li><b>盛り上がり</b>：今週の投稿数が100件以上で、前週より増えたテーマを、前週比の倍率の高い順に5件。</li>
+  <li><b>火種</b>：今週のネガティブ投稿数（推定）が30件以上のテーマを、前週比の倍率の高い順に5件（AIが判定した標本が少ないテーマは除く）。</li>
+  <li><b>表示</b>：ホームの「SNS分析」（今週の投稿数・ネガティブ投稿の前週比、盛り上がり・火種の上位3件）と、センシングボードのSNS分析（60日の推移、その日の投稿例）。最後の取得から24時間たつと「更新停止中」と出ます。</li>
+</ul>
+
+<div class="note"><b>SNS注目度（別の取得・日次）</b>毎日0:05に、Googleトレンドの検索関心度（阪急阪神・阪急電鉄・阪神電車・宝塚歌劇・阪神タイガース）、Wikipedia の閲覧数（「阪急阪神ホールディングス」の記事）、Googleニュースの記事数（「阪急阪神」の直近14日）を取ります。Googleトレンドは取得を断られることがあり、そのときは前回の値のままです。使い道は、データ管理（公開データ）への表示と、AIとの壁打ちで「Googleトレンド」「ウィキペディア」と名前を挙げて訊いたときの推移の集計です。総会QAの質問提案は、この取得で業界ニュースの見出しから作る話題の一覧だけを材料にし、注目度の数値は使いません。</div>
+
+<!-- ============================================================ -->
+<h2 id="s4"><span class="num">4</span>取得サイクルと保存期間</h2>
+
+<figure>
+<svg viewBox="0 0 1040 300" role="img" aria-label="1日の取得のタイミング">
+  <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+  <!-- 軸 -->
+  <g class="svg-t" font-size="12" fill="#5b5f66">
+    <line x1="200" y1="250" x2="1016" y2="250" stroke="#9aa1a9"/>
+    <g text-anchor="middle">
+      <text x="200" y="270">0時</text><text x="404" y="270">6時</text><text x="608" y="270">12時</text><text x="812" y="270">18時</text><text x="1016" y="270">24時</text>
+    </g>
+    <g stroke="#e3e5e8"><line x1="404" y1="40" x2="404" y2="250"/><line x1="608" y1="40" x2="608" y2="250"/><line x1="812" y1="40" x2="812" y2="250"/><line x1="200" y1="40" x2="200" y2="250"/><line x1="1016" y1="40" x2="1016" y2="250"/></g>
+  </g>
+  <!-- 行ラベル -->
+  <g class="svg-t" font-size="12.5" font-weight="700">
+    <text x="16" y="74" fill="#0b5688">業界ニュース</text>
+    <text x="16" y="122" fill="#7a3e9d">SNS（投稿・投稿数）</text>
+    <text x="16" y="170" fill="#2f6b4f">SNS注目度</text>
+    <text x="16" y="218" fill="#5b5f66">ピックアップ（AI）</text>
+  </g>
+  <!-- 業界ニュース：0:05 6:05 12:05 18:05 -->
+  <g fill="#0b5688">
+    <circle cx="203" cy="70" r="7"/><circle cx="407" cy="70" r="7"/><circle cx="611" cy="70" r="7"/><circle cx="815" cy="70" r="7"/>
+  </g>
+  <g class="svg-t" font-size="11.5" fill="#0b5688"><text x="214" y="56">0:05</text><text x="418" y="56">6:05</text><text x="622" y="56">12:05</text><text x="826" y="56">18:05</text></g>
+  <!-- SNS -->
+  <g fill="#7a3e9d">
+    <circle cx="203" cy="118" r="7"/><circle cx="407" cy="118" r="7"/><circle cx="611" cy="118" r="7"/><circle cx="815" cy="118" r="7"/>
+  </g>
+  <g class="svg-t" font-size="11.5" fill="#7a3e9d"><text x="214" y="104">0:05</text><text x="418" y="104">6:05</text><text x="622" y="104">12:05</text><text x="826" y="104">18:05</text></g>
+  <!-- 注目度 -->
+  <circle cx="203" cy="166" r="7" fill="#2f6b4f"/>
+  <text class="svg-t" font-size="11.5" x="214" y="152" fill="#2f6b4f">0:05（1日1回）</text>
+  <!-- ピックアップ -->
+  <rect x="200" y="204" width="816" height="20" rx="6" fill="#f6f8fa" stroke="#d6dadf"/>
+  <text class="svg-t" font-size="11.5" x="210" y="218" fill="#5b5f66">アプリを開いたとき・開いている間の15分ごとの確認で、前回から6時間たっていれば作り直す（誰も開いていない間は作らない）</text>
+  <!-- 16:30 軽い回 -->
+  <line x1="740" y1="40" x2="740" y2="250" stroke="#c7ccd1" stroke-dasharray="3 3"/>
+  <text class="svg-t" font-size="11" x="736" y="36" text-anchor="end" fill="#8a8f97">16:30 株価の回（ニュース・SNSは通常は期限前で取らない。取り損ねていれば取り直す）</text>
+</svg>
+<figcaption>図3 1日の取得のタイミング（日本時間）。0:05 は全体の定期更新、6:05・12:05・18:05 は軽い定期更新（どちらも systemd のタイマー）。取れなかった回は、次の回かアプリを開いたときに取り直す。</figcaption>
+</figure>
+
+<table>
+  <tr><th class="nw">データ</th><th class="nw">取得のサイクル</th><th>保存先</th><th class="nw">保存期間</th></tr>
+  <tr><td rowspan="2">業界ニュース</td><td rowspan="2">6時間ごと<br>（0:05・6:05・12:05・18:05）</td><td><code>news_latest.json</code>（画面用。直近14日の見出し）</td><td>毎回置き換え</td></tr>
+  <tr><td><code>news_archive.json</code>（蓄積。同じ記事の重複を含む。§2の注）</td><td><b>期限なし</b>（AIが読むのは直近365日）</td></tr>
+  <tr><td rowspan="3">SNS（X の投稿）</td><td rowspan="3">6時間ごと<br>（ニュースと同じ回）</td><td><code>posts_archive.json</code>（投稿の標本。約7.5万件。投稿のIDで重複を除く）</td><td><b>期限なし</b>（アプリが読むのは直近74日）</td></tr>
+  <tr><td><code>volume_daily.json</code>（日別の投稿数）</td><td><b>期限なし</b>（画面が出すのは直近60日）</td></tr>
+  <tr><td><code>post_labels.json</code>（AIの判定）・<code>sns_x_latest.json</code>（画面用の集計）</td><td>判定は投稿が残る間ずっと（集計の対象外の投稿の判定は捨てる）／集計は毎回置き換え</td></tr>
+  <tr><td>SNS注目度</td><td>日次（0:05）</td><td><code>sns_trends.csv</code>・<code>sns_latest.json</code></td><td>トレンド・閲覧数は取れた系列だけ毎回置き換え（トレンドは期間内の最大＝100で正規化されるため）、記事数は足し込み</td></tr>
+  <tr><td>（参考）企業巡回の見出し</td><td>毎日0:00〜0:05</td><td><code>runtime_data/company_watch/company_news.db</code></td><td><b>6か月（183日）</b></td></tr>
+</table>
+
+<div class="note"><b>取れなかったとき</b>1回の取得で一部の検索語が失敗しても、ほかは続けて保存します。定期の回で取れなかったものは、次の回か、予定の時刻から1時間過ぎてアプリを開いたときに裏で取り直します（同じ取得元は30分に1回まで）。一部の検索語だけ失敗した回は「成功」として扱うので、失敗した語の記事は次の回まで画面の一覧から抜けます。画面は常に保存済みのデータですぐに描くので、取得の待ち時間で画面が止まることはありません。</div>
+
+<div class="note"><b>増え続けるもの</b>ニュースの蓄積・SNSの投稿とAIの判定・日別の投稿数は、履歴を残すため意図して消さない作りです（コードに「恒久蓄積」と明記。再取得できない履歴なので、消すと戻りません）。</div>
+
+<table>
+  <tr><th class="nw">蓄積</th><th class="nw">いまの大きさ（10/7）</th><th class="nw">増え方（直近30日の平均）</th><th>アプリが読む範囲</th></tr>
+  <tr><td>ニュースの蓄積</td><td>16MB・15,769件</td><td>1日約450件・約0.45MB（年約165MB）</td><td>直近365日（AIとの壁打ち・計画系の見出し）</td></tr>
+  <tr><td>SNSの投稿</td><td>33MB・74,572件</td><td>1日約1,900件・約0.8MB（年約300MB）</td><td>直近74日（ホームとセンシングボードの集計・図）</td></tr>
+  <tr><td>SNSのAIの判定</td><td>9.6MB・61,902件</td><td>1日約0.3MB（年約110MB）</td><td>投稿と同じ</td></tr>
+  <tr><td>日別の投稿数</td><td>0.4MB・67語×59日</td><td>年約3MB</td><td>直近60日（図）</td></tr>
+</table>
+<p style="font-size:12.5px;color:var(--muted)">合わせて年およそ0.6GB増えます。それより古い分はどの機能も読みません。6時間ごとの取得では SNSの投稿と判定を全件読み直して集計するため、蓄積が増えるほど1回の取得の時間とメモリが増えます（いまは約1.5秒・約0.1GB。いまの増え方のままなら1年後は十数秒・1GB強の見込み）。画面とAIはこの全件を読まないので、表示や回答の速さには響きません（ニュースの蓄積だけは AI の見出し探しのためにアプリが丸ごと読み込み、記憶に置きます。いま約20MB）。容量は定期的に確認してください（<code>du -sh data_external</code>）。</p>
+
+<!-- ============================================================ -->
+<h2 id="s5"><span class="num">5</span>取得したニュースをAIの回答に使う処理</h2>
+
+<p><b>結論：あります。</b>ただし、どの機能も AI に渡すのは<b>見出し（配信元・日付・URL を含む）だけ</b>で、ニュース記事の本文は読みに行きません（業界ニュースのリンク先〈Bing 経由の各媒体〉は外部情報カタログに無いため、その場の外部取得でも開きません）。</p>
+
+<figure>
+<svg viewBox="0 0 1040 400" role="img" aria-label="AIとの壁打ちの回答生成の流れ">
+  <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+  <!-- 質問 -->
+  <rect x="16" y="160" width="130" height="60" rx="30" fill="#0b5688"/>
+  <text class="svg-t" font-size="13.5" x="81" y="196" text-anchor="middle" fill="#fff" font-weight="700">質問</text>
+  <!-- 意図解釈 -->
+  <rect x="180" y="150" width="170" height="80" rx="10" fill="#fff" stroke="#0b5688"/>
+  <text class="svg-t" font-size="13" x="265" y="180" text-anchor="middle" font-weight="700">意図の解釈（AI）</text>
+  <text class="svg-t" font-size="12" x="265" y="200" text-anchor="middle">検索の要否・外部の要否</text>
+  <text class="svg-t" font-size="12" x="265" y="218" text-anchor="middle">成果物の要否を決める</text>
+  <!-- 事前データ -->
+  <rect x="390" y="24" width="370" height="200" rx="10" fill="#f6f8fa" stroke="#9aa1a9"/>
+  <text class="svg-t" font-size="13" x="406" y="48" font-weight="700">(a) 事前に貯めたデータから、問いに関係するものを集める</text>
+  <text class="svg-t" font-size="12.5" x="406" y="74">・社内資料（RAG。公式IR・有報も）</text>
+  <text class="svg-t" font-size="12.5" x="406" y="96">・監視指標の値（最大15件）・推移の集計・社内KPI</text>
+  <text class="svg-t" font-size="12.5" x="406" y="120" fill="#0b5688" font-weight="700">・社外の発表の見出し（最大12件）</text>
+  <text class="svg-t" font-size="12" x="418" y="140" fill="#0b5688">業界ニュースの蓄積（直近365日）＋企業巡回（183日）</text>
+  <text class="svg-t" font-size="12" x="418" y="158" fill="#0b5688">問いの語が題に当たる見出しだけ。本文は無し</text>
+  <text class="svg-t" font-size="12.5" x="406" y="182">・競合の決算要約（会社名・競合の決算を訊いたとき）</text>
+  <text class="svg-t" font-size="12.5" x="406" y="206" fill="#7a3e9d">・SNS分析の集計（SNS・評判・話題の問いのときだけ）</text>
+  <!-- その場で読む -->
+  <rect x="390" y="250" width="370" height="130" rx="10" fill="#fbf1ea" stroke="#a5532a" stroke-dasharray="6 4"/>
+  <text class="svg-t" font-size="13" x="406" y="274" font-weight="700" fill="#a5532a">(b) 必要なときだけ、外部サイトをその場で読む</text>
+  <text class="svg-t" font-size="12.5" x="406" y="298">外部の一次情報が要る、または社内の根拠が弱いとき</text>
+  <text class="svg-t" font-size="12.5" x="406" y="320">AIが登録済みのサイトから読む先を選ぶ</text>
+  <text class="svg-t" font-size="12.5" x="406" y="342">入口 → ニュース・IRの一覧 → 記事・PDF</text>
+  <text class="svg-t" font-size="12" x="406" y="364" fill="#5b5f66">ディープ：最大50サイト・240ページ・180秒</text>
+  <!-- 回答 -->
+  <rect x="800" y="150" width="224" height="80" rx="10" fill="#fff" stroke="#0b5688"/>
+  <text class="svg-t" font-size="13" x="912" y="180" text-anchor="middle" font-weight="700">回答を作る（AI）</text>
+  <text class="svg-t" font-size="12" x="912" y="200" text-anchor="middle">結論を先に・根拠は資料から</text>
+  <text class="svg-t" font-size="12" x="912" y="218" text-anchor="middle">見出しは「発表によれば」</text>
+  <rect x="800" y="262" width="224" height="80" rx="10" fill="#fff" stroke="#9aa1a9"/>
+  <text class="svg-t" font-size="13" x="912" y="290" text-anchor="middle" font-weight="700">根拠を見る</text>
+  <text class="svg-t" font-size="12" x="912" y="310" text-anchor="middle">社外の発表の見出し・外部サイト</text>
+  <text class="svg-t" font-size="12" x="912" y="328" text-anchor="middle">（出典URL・読めなかったサイト）</text>
+  <!-- 矢印 -->
+  <g stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#ar3)">
+    <line x1="146" y1="190" x2="178" y2="190"/>
+    <path d="M350,170 C368,170 370,124 388,124"/>
+    <path d="M350,214 C370,214 368,314 388,314" stroke="#a5532a" stroke-dasharray="5 4"/>
+    <path d="M760,124 C780,124 780,180 798,180"/>
+    <path d="M760,314 C780,314 780,214 798,214" stroke="#a5532a" stroke-dasharray="5 4"/>
+    <line x1="912" y1="230" x2="912" y2="260"/>
+  </g>
+</svg>
+<figcaption>図4 AIとの壁打ちの回答生成の流れ。業界ニュースは (a) の「社外の発表の見出し」として渡る。(b) の外部サイトは必要と判断した回だけ読む。AIが検索は要らないと判断した問い（続きの依頼・挨拶・用語の説明など）では、指標・見出し・決算を渡さない（「表にして」では前の回の数値を引き継ぐ）。</figcaption>
+</figure>
+
+<table>
+  <tr><th class="nw">機能</th><th>ニュースの使い方</th><th class="nw">条件・範囲</th></tr>
+  <tr><td>AIとの壁打ち（経営AI相談）</td><td>業界ニュースの蓄積と企業巡回の見出しから、問いに関係するものを「社外の発表（見出しのみ）」として渡す。AIは「発表の見出しによれば」と断って使い、根拠欄に見出しとリンクが並ぶ</td><td>問いの特徴語が題に当たる見出しだけ（3字以上の語が当たる見出しがあればそれだけ。無ければ、ニュースは題と配信元で2語以上当たるものだけ。関係が無ければ渡さない）。ニュースは直近365日・企業巡回は183日、合わせて最大12件</td></tr>
+  <tr><td>ピックアップ（ホーム上段・センシングボード）</td><td>各社の名前で集めたニュースと企業巡回の競合の発表から「競合の動き」を作り、外部指標・株価・企業巡回の見出し・SNSと合わせて、AI がいま見るべき点を最大3つ選ぶ（無ければ出さない）</td><td>競合の動きは14日以内・1社1件・6件まで（自社を除く）。アプリを開いている間、前回から6時間たつと作り直す</td></tr>
+  <tr><td>計画系5機能（前提を洗い直す・計画を点検する・グループ横断で束ねる・計画を確認・検証する・個別案件カルテ）</td><td>AIとの壁打ちと同じ見出しを、計画書・付議資料の主題で引いて「社外の発表（H番号）」として渡す</td><td>センシングボードの閲覧権限がある人だけ。最大12件</td></tr>
+  <tr><td>総会QA：AIで追加質問を提案・壁打ちの質問提案</td><td>ホームの業界ニュース（最新）の見出しを材料に、株主から出そうな質問を根拠（見出しと日付）つきで提案する。ほかに SNS・HHHDのニュースリリース・企業巡回の見出しも材料にする</td><td>担当コアの事業の見出し（無ければ全事業）</td></tr>
+  <tr><td>総会QA：AI壁打ち</td><td>業界ニュースの見出し（社外の発表）を材料の一つにする。企業巡回の見出しは別に渡し、その本文を読みに行くこともある（§6）</td><td>問いに関係するものだけ</td></tr>
+  <tr><td>総会QA：当日回答作成</td><td colspan="2">使わない（選んだ期の想定問答だけで答える）</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s6"><span class="num">6</span>AIとの壁打ちが質問のたびに読む外部サイト</h2>
+
+<table>
+  <tr><th class="nw">項目</th><th>内容</th></tr>
+  <tr><td>読むかどうか</td><td>意図の解釈（AI）が「外部の一次情報が要る」と判断したとき、または社内資料の根拠が無い・弱いとき（添付資料がある回を除く）に候補に上がり、さらに読む先を決める AI が「社内で足りる」と判断すれば読まない。表にする・まとめ直すなど変換だけの依頼では読まない。続きの依頼は、AI が原則として要らないと判断する。</td></tr>
+  <tr><td>読める範囲</td><td><b>外部情報カタログ（<code>catalog/外部情報カタログ.md</code>）に登録したサイトだけ</b>：222件（外部情報〈政策・規制、競合・資本市場、災害・安全〉28〈うち有償2件は既定で除外〉・競合66・グループ会社128）。許可するホストは184（カタログの181＋入口の転送先として覚えた3：京阪・e-Gov・名鉄）。リンクは同じサイトの中だけを辿る。入口ページが別のホストへ転送したときは、その転送先を許可に加えて覚える（上の3件）。</td></tr>
+  <tr><td>選び方</td><td><b>検索エンジンは使わない</b>（一般のウェブ検索は 2026-10-04 に削除）。AI はカタログの候補（ディープ60件・簡易40件。質問に出た会社とその同じ事業の競合を先頭に置く）から読む先を選ぶだけで、URL を自分で書くことはない。<b>外部サイトへは質問文を送らない</b>（各ページの GET だけ。質問文は読む先を選ぶ AI〈Claude〉には渡る）。</td></tr>
+  <tr><td>読み方</td><td>（EDINET を選んだときは提出書類一覧を先に）入口ページ → AI が選んだニュース・IR の一覧 → 一覧の中の新しい記事・PDF（日付の新しい順に、簡易3件・ディープ6件）→ 足りなければ AI が追加で読む先を選ぶ（簡易1回・ディープ2回）。中身の薄いページだけ、見えないブラウザ（Playwright）で描画して読み直す（簡易6・ディープ16ページまで）。開示は EDINET の提出書類一覧（API。APIキーが要る。許可リストとは別枠）から取る。</td></tr>
+  <tr><td>量の上限</td><td>ディープ（既定）：最大50サイト・240ページ・180秒（各社比較は75サイト・360ページ）／⚡簡易モード：20サイト・90ページ・60秒（各社比較は30サイト・140ページ）。続きの依頼・変換・「すぐに答えを出す」では、ディープでも簡易の量に下げる。上限は環境変数 <code>EXTERNAL_*</code> で変えられる。</td></tr>
+  <tr><td>安全の仕組み</td><td>robots.txt を守る（読めないときは許可とみなす）。社内・ループバックなど内部アドレスへの接続を拒否（SSRF 対策）。拒否・混雑を返したサイト（401・403・429・503、接続エラー）は3時間休む（アプリが動いている間だけ覚える）。1回1MB・PDF は20MB・12ページまで。名乗った User-Agent で取り、偽装しない。自動取得を遮断するサイトは回避しない。読んだ本文は24時間キャッシュ（<code>runtime_data/external_cache/</code>。期限の切れたファイルは使わないが、消す仕組みは無い）。<br>なお、描画で読み直すときは、ページが読み込む画像・スクリプトなどを許可リストの外のホストからも取り（内部アドレスは拒否）、3時間休む扱いも効かない。</td></tr>
+  <tr><td>回答への出し方</td><td>読んだページはサイト・ページ名・URL・日付つきで AI に渡し、根拠欄の「外部サイトで確認した情報」にリンクと抜粋（360字まで）を並べる。読めなかったサイト（遮断されたサイトや、本文が合わせて600字に満たないサイト）は根拠欄に「本文を取得できなかったサイト」として並べ、回答では「確認できなかった」と書かせて「発表が無い」と断定させない。</td></tr>
+  <tr><td>残るもの</td><td>読んだ本文は上のキャッシュだけで、ほかの機能の材料には貯めない。回答（伏字化したもの。外部の本文を引いていることがある）は回答履歴 <code>runtime_data/ai_response_history.json</code> に最大2,000件残る。ログ（<code>runtime_data/logs/app.jsonl</code>）には読んだ URL と理由だけを残し、本文は残さない。</td></tr>
+  <tr><td>総会QAのAI壁打ち</td><td>同じ仕組みで外部を読む（既定で有効。<code>.env</code> の <code>AGM_REHEARSAL_EXTERNAL=0</code> で止める）。軽量な AI が先に要否を判定 → 企業巡回で集めた見出しのうち日付のあるもののURLから本文を読む（ディープ8件・簡易4件まで、各2,500字）→ 足りなければ登録済みのサイトを読む（読む先を決める AI がもう一度判定）。添付資料がある回は読まない。量は常にディープ（⚡の切り替えは無い）で、AI に渡すのは最大6ページ×3,000字。読めなかったサイトは回答に「読めなかったサイト：…」と添える。壁打ちの中での質問提案も同じ。</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="s7"><span class="num">7</span>コード上の場所（開発者向け）</h2>
+<table>
+  <tr><th class="nw">役割</th><th>場所</th></tr>
+  <tr><td>業界ニュースの取得</td><td><code>collectors/collector.py</code> の <code>target_news_rss</code>（検索語は <code>collectors/config.json</code> の <code>targets.news_rss</code>）</td></tr>
+  <tr><td>業界ニュースの表示・競合の動き</td><td><code>news_feed.py</code>（<code>news_html</code>・<code>fetch_items</code>・<code>competitor_highlights</code>）</td></tr>
+  <tr><td>SNSの取得・投稿数・AI判定</td><td><code>collectors/sns_x.py</code>・<code>collectors/sns_volume.py</code>・<code>collectors/sns_ai.py</code>（検索語は <code>collectors/sns_topics.py</code>・<code>collectors/sns_keywords.py</code>）</td></tr>
+  <tr><td>SNS注目度</td><td><code>collectors/sns_trends.py</code></td></tr>
+  <tr><td>取得の区分（6時間ごと・日次ほか）</td><td><code>refresh_policy.py</code>（<code>TIERS</code>・<code>tier_of</code>）、定期実行は <code>scripts/systemd/</code>（<code>hh-pipeline.timer</code> 0:05／<code>hh-pipeline-light.timer</code> 6:05・12:05・18:05・16:30）</td></tr>
+  <tr><td>アプリを開いたときの取り直し</td><td><code>app.py</code> の <code>refresh_home_on_open</code>・<code>_retry_missed_sources</code></td></tr>
+  <tr><td>ホームのSNSカード</td><td><code>ui.py</code> の <code>sns_home_panel_html</code></td></tr>
+  <tr><td>AIへ渡す見出し</td><td><code>knowledge_rag.py</code> の <code>watch_headlines</code>（壁打ち）、<code>external_context.py</code>（計画系の H 番号）、<code>app.py</code> の <code>_pickup_context</code>（ピックアップ）、<code>agm/ledger.py</code> の <code>suggest_sources</code>（総会QAの質問提案）・<code>company_watch_hits</code>（総会QAの壁打ち）</td></tr>
+  <tr><td>その場の外部取得</td><td><code>external_lookup.py</code>（<code>run</code>・<code>PROFILES</code>）、許可リストは <code>source_catalog.py</code>（取得元の表 <code>collectors/sources_catalog.py</code> とは別）と <code>catalog/外部情報カタログ.md</code>、EDINET は <code>edinet_tool.py</code>、総会QAの外部取得は <code>agm/ledger.py</code> の <code>_read_announcements</code></td></tr>
+</table>
+<p>外部データ全体の仕様は <a href="../manuals/システム引き継ぎ資料.html">システム引き継ぎ資料</a> の「5.11 外部データの取得と利用」にまとめています。</p>
+
+<footer>業界ニュース・SNSの取得とAIでの利用（docs/design/解説_業界ニュース・SNSの取得とAIでの利用_20261008.html）／2026-10-08 作成。件数は 2026-10-07 時点の保存データで確認。</footer>
+</div>
+</body>
+</html>

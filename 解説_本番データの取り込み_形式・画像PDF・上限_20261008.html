@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>本番データの取り込み</title>
+<style>
+  :root{
+    --ink:#1c1c1e; --muted:#5b5f66; --faint:#8a8f97;
+    --line:#e3e5e8; --bg:#fff; --soft:#f6f8fa;
+    --brand:#0b5688; --ok:#2f6b4f; --ok-bg:#eef6f1; --ng:#a5332a; --ng-bg:#fbeeec; --warn:#8a5a00; --warn-bg:#fdf6e3;
+    --mono:"SF Mono",Menlo,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,system-ui,sans-serif;
+    font-size:14px;line-height:1.8;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 28px 80px}
+  header{border-bottom:3px solid var(--brand);padding-bottom:16px;margin-bottom:22px}
+  header .eyebrow{font-size:12px;letter-spacing:.14em;color:var(--brand);font-weight:700}
+  header h1{font-size:24px;margin:6px 0 4px}
+  header p{margin:0;color:var(--muted);font-size:13px}
+  h2{font-size:18px;margin:38px 0 8px;padding-top:18px;border-top:1px solid var(--line)}
+  h2 .num{display:inline-block;min-width:28px;height:28px;line-height:28px;text-align:center;
+    background:var(--brand);color:#fff;border-radius:7px;font-size:13px;margin-right:9px}
+  p{margin:6px 0} ul{margin:6px 0 6px 1.3em;padding:0} li{margin:4px 0}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+  th{background:var(--soft);font-weight:700}
+  code{background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:12px;font-family:var(--mono);overflow-wrap:anywhere}
+  .y{color:var(--ok);font-weight:700} .n{color:var(--ng);font-weight:700}
+  .answers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0}
+  .answer{border:1px solid var(--line);border-left:5px solid var(--brand);border-radius:0 10px 10px 0;padding:10px 14px}
+  .answer .q{font-size:12px;color:var(--muted);font-weight:700}
+  .answer .a{font-size:14.5px;font-weight:700;margin:3px 0 4px}
+  .answer p{font-size:12.5px;margin:3px 0}
+  .rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+  .rule{border-radius:10px;padding:10px 14px;font-size:13px}
+  .rule .t{display:block;font-size:14px;font-weight:700;margin-bottom:2px}
+  .rule.ng{background:var(--ng-bg);border:1px solid #efc9c4} .rule.ng .t{color:var(--ng)}
+  .rule.warn{background:var(--warn-bg);border:1px solid #efdcaa} .rule.warn .t{color:var(--warn)}
+  .chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:0 8px;white-space:nowrap}
+  .chip.ok{background:var(--ok-bg);color:var(--ok)} .chip.ng{background:var(--ng-bg);color:var(--ng)} .chip.warn{background:var(--warn-bg);color:var(--warn)}
+  .small{font-size:12.5px;color:var(--muted)}
+  ol.todo{margin:8px 0 8px 1.4em;padding:0} ol.todo li{margin:6px 0}
+  footer{margin-top:44px;padding-top:12px;border-top:1px solid var(--line);color:var(--faint);font-size:12px}
+  @media (max-width:760px){
+    .wrap{padding:26px 16px 60px} .answers,.rules{grid-template-columns:1fr} header h1{font-size:21px}
+    th,td{overflow-wrap:anywhere;padding:5px 6px} .chip{white-space:normal}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">HANKYU HANSHIN GROUP ／ AI経営ナビ・総会QAアプリ</div>
+  <h1>本番データの取り込み：形式・画像PDF・上限</h1>
+  <p>本番の社内資料を入れる前に知っておくこと。2026年10月8日時点のアプリで確認した内容です。</p>
+</header>
+
+<h2><span class="num">0</span>要点</h2>
+<div class="answers">
+  <div class="answer">
+    <div class="q">取り込める形式・旧形式・Excel</div>
+    <div class="a">入口ごとに違う。.doc は経営ナビでは読めない</div>
+    <p>.xls はおおむね読める。対応外の形式は何も言わずに無視される。Excel は全シートを読み、結合セルは先頭のセルにだけ値が入る。</p>
+  </div>
+  <div class="answer">
+    <div class="q">画像PDF・OCR・読めなかった資料</div>
+    <div class="a">OCR は無い。画像のページは読めない</div>
+    <p>管理画面で分かるのはファイル単位だけ。一部のページだけ画像の資料は「正常」と出て見分けられない。</p>
+  </div>
+  <div class="answer">
+    <div class="q">サイズ・ページ数の上限</div>
+    <div class="a">大きすぎるファイルは読まない。長すぎる資料は先頭だけ読む</div>
+    <p>大きさの超過は「失敗」と出る。ページ数・文字数の超過は、どの画面にも出ない。</p>
+  </div>
+</div>
+
+<h2><span class="num">1</span>取り込める形式</h2>
+<table>
+  <tr><th>入口</th><th>読める形式</th><th>.doc</th><th>.xls</th></tr>
+  <tr><td>経営ナビ：社内資料の置き場</td><td>PDF・.docx・.pptx・.ppt・.xlsx・.xls・.csv・.txt</td><td class="n">×</td><td class="y">○</td></tr>
+  <tr><td>画面からの添付（AIとの壁打ち・計画系・総会QAの壁打ち）</td><td>同じ8形式</td><td class="n">×</td><td class="y">○</td></tr>
+  <tr><td>個別案件・付議資料</td><td>PDF・.docx・.doc・.pptx・.txt（案件一覧は .xlsx）</td><td class="y">○</td><td class="n">×</td></tr>
+  <tr><td>総会QA：フォルダの取り込み</td><td>.docx・.doc・PDF（.xlsx は問答一覧として）</td><td class="y">○</td><td class="n">×</td></tr>
+  <tr><td>総会QA：問答のアップロード</td><td>.xlsx・.xls・.csv・.docx・.doc・PDF・.txt</td><td class="y">○</td><td class="y">○</td></tr>
+  <tr><td>内部KPI</td><td>.csv・.xlsx</td><td>―</td><td class="n">×</td></tr>
+</table>
+<ul>
+  <li>対応外の形式（.doc・.msg・画像・.zip など）を経営ナビの置き場に置くと、<b>何も言わずに無視</b>され、管理画面の一覧にも出ません。</li>
+  <li>CSV は UTF-8・Shift-JIS のどちらでも読めます。</li>
+</ul>
+
+<h2><span class="num">2</span>Excel・Word・PowerPoint の扱い</h2>
+<ul>
+  <li><b>複数シート</b>：全シートを読む（非表示のシートも含む）。</li>
+  <li><b>結合セル</b>：値は結合した範囲の先頭（左上）のセルにだけ入り、残りのセルは空として読む。たとえば「事業」の列で3行を結合した「都市交通」は、1行目にだけ入り、2・3行目は事業名なしになる。
+    <ul>
+      <li>内部KPI では、事業名が空になった行は読み飛ばされる。</li>
+      <li>総会QAの台帳では、重要度・回答者・担当・分類の列だけ上の行の値で埋める。</li>
+    </ul>
+  </li>
+  <li><b>数式</b>：Excel が最後に保存した計算結果を読む。Excel で一度も計算・保存していないファイルは、計算結果を読めないことがある。</li>
+  <li><b>Word・PowerPoint</b>：本文と表を読む。ヘッダー・フッター、ノート、図や画像の中の文字は読まない。</li>
+</ul>
+
+<h2><span class="num">3</span>画像PDF・OCR と、読めなかった資料の見え方</h2>
+<ul>
+  <li><b>OCR は無い</b>。どの形式も文字だけを読み、画像やグラフは読まない。スキャンした PDF でも、OCR 済みで文字が埋め込まれていれば読めるはず。</li>
+  <li>画像だけのページは読めないまま飛ばす。</li>
+</ul>
+<table>
+  <tr><th>状況</th><th>管理画面（データ管理（内部資料））の表示</th></tr>
+  <tr><td>全ページが画像・空のファイル</td><td><span class="chip warn">要確認</span>（未索引）</td></tr>
+  <tr><td>パスワード付き・壊れている</td><td><span class="chip ng">失敗</span>（未索引）</td></tr>
+  <tr><td>一部のページだけ画像</td><td><span class="chip ok">正常</span>。<b>見分けられない</b></td></tr>
+</table>
+<p>ほかの入口：AIとの壁打ち（両アプリ）の添付は、画像だけの PDF でも警告が出ません。計画系は「中身を読み取れませんでした」と出して止まります。総会QAのフォルダの取り込み・問答のアップロードでは「解析対象外」「読み取れませんでした」と出ます。</p>
+
+<h2><span class="num">4</span>サイズ・ページ数の上限</h2>
+<p>上限は2種類あり、超えたときの動きが違います。</p>
+<div class="rules">
+  <div class="rule ng"><span class="t">① ファイルの大きさの上限</span>超えたファイルは<b>丸ごと読まない</b>。画面に「失敗」などと出るが、ほとんどの入口で大きさが原因とは書かれない。</div>
+  <div class="rule warn"><span class="t">② 読む量（ページ数・文字数）の上限</span>超えた分は<b>読まずに捨て、先頭だけ使う</b>。どの画面にも表示されない。</div>
+</div>
+<table>
+  <tr><th>入口</th><th>① 大きさの上限</th><th>② 読む量の上限</th></tr>
+  <tr><td>経営ナビ：社内資料の置き場</td><td>100MB（ただし CSV・TXT は 2MB）</td><td>PDF は先頭80ページ</td></tr>
+  <tr><td>総会QA：フォルダの取り込み</td><td>なし</td><td>PDF は先頭80ページ</td></tr>
+  <tr><td>画面からの添付（両アプリの壁打ち・計画系）</td><td>25MB</td><td>PDF は先頭40ページ・1ファイル12,000字（計画系はもう少し多い）</td></tr>
+  <tr><td>総会QA：問答のアップロード</td><td>25MB</td><td>―</td></tr>
+  <tr><td>個別案件・付議資料</td><td>100MB</td><td>1資料24,000字</td></tr>
+</table>
+<p class="small">このほか、総会QAの問答のアップロードは1回10ファイル・300問まで（超えると画面に出る）。PDF の80ページ以外の上限は <code>.env</code> で変えられます。</p>
+
+<h2><span class="num">5</span>本番投入前の注意</h2>
+<ol class="todo">
+  <li><b>スキャンした PDF は OCR してから入れる。</b></li>
+  <li><b>.doc・.msg・.zip などは .docx・.xlsx・PDF に変換する。</b>（経営ナビの置き場では無視され、一覧にも出ない）</li>
+  <li><b>80ページを超える PDF は分ける。</b></li>
+  <li><b>Excel は一度 Excel で開いて保存してから入れる。</b>データの表では結合セルを避ける。</li>
+  <li>Office の一時ファイル（名前が <code>~$</code> で始まるもの）は置き場から除く（「失敗」として出るため）。</li>
+</ol>
+
+<footer>本番データの取り込み：形式・画像PDF・上限（docs/design/解説_本番データの取り込み_形式・画像PDF・上限_20261008.html）／2026-10-08 作成。</footer>
+</div>
+</body>
+</html>
